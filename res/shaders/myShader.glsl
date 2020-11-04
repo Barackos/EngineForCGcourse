@@ -1,31 +1,39 @@
 #version 330 core
 out vec4 FragColor;
   
-in vec4 vertexColor; // the input variable from the vertex shader (same name and same type)  
-in vec2 texCoord0;
+in vec4 vertexColor; 
+in vec2 complex;
 
 uniform sampler2D sampler;
-uniform vec4 ourColor;
-uniform float k;
-uniform int rgb;
+uniform int p;
+
+#define MAX_ITERATIONS 10
+#define THRESHOLD 20.0f
+
+vec2 pow(vec2 num, int power) {
+    float x = num.x, y = num.y;
+    for (int i = 1; i < power; i ++){
+        num.x = x * x - y * y;
+        num.y = 2 * (x * y);
+    }
+    return num;
+}
+
+float vec2Abs(vec2 num){
+    return sqrt(num.x * num.x + num.y * num.y);
+}
 
 void main()
 {
-    FragColor = ourColor * texture(sampler, texCoord0);// + 0.5 * ourColor;
-    //FragColor.a = 0.1;
-    //FragColor = ourColor;
-    switch(rgb){
-        case 0:
-            FragColor.r += k;
-            break;
-        case 1:
-            FragColor.g += k;
-            break;
-        case 2:
-            FragColor.b += k;
-            break;
-
+    vec2 agg = vec2(0.0f, 0.0f);
+    int i; //iterations count
+    for(i = 0; i < MAX_ITERATIONS; i++){
+        agg = pow(agg, 2) + complex; //z^p + c
+        if(vec2Abs(agg) > THRESHOLD) break;
     }
-
-    //FragColor = vertexColor;//ourColor;//
+    float norm = i / MAX_ITERATIONS; //normalized iteration count
+    if (i == 0) //debugging
+        FragColor = texture(sampler, vec2(norm, norm));
+    else
+        FragColor = texture(sampler, complex);
 } 

@@ -22,5 +22,5 @@ public:
 private:
     unsigned int counter;
     unsigned int tmp, rgb, tex;
-    float x, y, k, diff;
+    float x, y, p, diff;
 };

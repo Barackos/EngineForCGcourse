@@ -5,7 +5,6 @@
 
 Mandelbrot::Mandelbrot() {
     counter = 0;
-    k = -1.0;
     diff = 0.01f;
     rgb = 2;
     tex = 0;
@@ -17,13 +16,13 @@ void Mandelbrot::Init() {
     AddShader("../res/shaders/myShader");
 
     AddTexture("../res/textures/pal.png", 2);
-    AddTexture("../res/textures/grass.bmp", 2);
-    AddTexture("../res/textures/box0.bmp", 2);
+    //AddTexture("../res/textures/grass.bmp", 2);
+    //AddTexture("../res/textures/box0.bmp", 2);
     //TextureDesine(800,800);
 
-    AddMaterial(texIDs,slots, 3); // creates new material with all 3 textures
+    AddMaterial(texIDs,slots, 1); // creates new material with all 3 textures
     //materials[0]->rotateTexs();
-    AddMaterial(texIDs+1,slots+1, 2); //only 2 textures, starting from second
+    //AddMaterial(texIDs+1,slots+1, 2); //only 2 textures, starting from second
 
     AddShape(Plane, -1, TRIANGLES);
     SetShapeShader(0, 0);
@@ -61,16 +60,13 @@ void Mandelbrot::Update(const glm::mat4 &MVP, const glm::mat4 &Model, const int 
     s->Bind();
     s->SetUniformMat4f("MVP", MVP);
     s->SetUniformMat4f("Normal", Model);
-    //s->SetUniform1i("sampler", materials[shapes[pickedShape]->GetMaterial()]->GetSlot(0));
-    s->SetUniform4f("ourColor", 0.2 - k, 0.2 - k, 0.2 - k, 0.2 - k);
-    k += diff;
     if(++counter == 200){
         diff *= -1;
         counter = 0;
         tex = (tex + 1) % 3;
-        s->SetUniform1i("sampler", tex);
+        //s->SetUniform1i("sampler", tex);
     }
-    s->SetUniform1f("k", k);
+    s->SetUniform1f("p", p);
     s->SetUniform1i("rgb", rgb);
     s->Unbind();
 }
