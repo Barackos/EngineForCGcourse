@@ -1,0 +1,3 @@
+#!/bin/bash
+
+cd ../ && make Mandelbrot && cd Mandelbrot && ./Mandelbrot
