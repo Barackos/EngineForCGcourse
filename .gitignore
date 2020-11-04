@@ -1,4 +1,13 @@
 # Directories
 build
+.idea/*
+cmake-build-debug
+CMakeFiles
 
 # Files
+*.o
+*.a
+Makefile
+CMakeCache.txt
+*.cmake
+Mandelbrot/Mandelbrot
