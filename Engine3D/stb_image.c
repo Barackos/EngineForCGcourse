@@ -97,9 +97,7 @@
    #define stbi_inline __forceinline
 #endif
 
-#ifdef __unix
-   #define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
-#endif
+#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),(mode)))==NULL
 
 // implementation:
 typedef unsigned char  uint8;

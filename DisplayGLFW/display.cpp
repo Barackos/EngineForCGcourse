@@ -8,7 +8,10 @@ Display::Display(int width, int height, const std::string& title)
 	/* Initialize the library */
     if (!glfwInit())
         error =  -1;
-
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	m_window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
 	if(!m_window)
 	{
