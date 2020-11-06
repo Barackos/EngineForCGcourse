@@ -15,7 +15,7 @@ int main(int argc,char *argv[])
 	//y.push_back(DISPLAY_HEIGHT / 2);
 	Display display(DISPLAY_WIDTH, DISPLAY_HEIGHT, "OpenGL");
 	Renderer* rndr = new Renderer(CAMERA_ANGLE, (float)DISPLAY_WIDTH / 2 / DISPLAY_HEIGHT, NEAR, FAR); // adding a camera
-	Mandelbrot *scn = new Mandelbrot();  //initializing scene
+	Mandelbrot *scn = new Mandelbrot(DISPLAY_WIDTH, DISPLAY_HEIGHT);  //initializing scene
 	
 	Init(display); //adding callback functions
 	scn->Init();    //adding shaders, textures, shapes to scene

@@ -6,8 +6,10 @@ in vec2 complex;
 
 uniform sampler2D sampler;
 uniform int p;
+uniform int width;
+uniform int height;
 
-#define MAX_ITERATIONS 20
+#define MAX_ITERATIONS 200.0
 #define THRESHOLD 20.0f
 
 vec2 pow(vec2 num, int power) {
@@ -30,14 +32,9 @@ void main()
     vec2 agg = vec2(0.0f, 0.0f);
     int i; //iterations count
     for(i = 0; i < MAX_ITERATIONS; i++){
-        agg = pow(agg, 2) + complex; //z^p + c
+        agg = pow(agg, p) + complex; //z^p + c
         if(vec2Abs(agg) > THRESHOLD) break;
     }
     float norm = i / MAX_ITERATIONS; //normalized iteration count
-    if (norm == 1.0f) //debugging
-        FragColor = texture(sampler, vec2(norm, norm));
-    else if (norm > 0.3 && norm < 0.99)
-        FragColor = texture(sampler, vec2(0.5f, 0.5f));
-    else
-        FragColor = texture(sampler, complex);
+    FragColor = texture(sampler, vec2(norm, norm));
 } 

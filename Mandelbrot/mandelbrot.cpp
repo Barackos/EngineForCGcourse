@@ -3,15 +3,16 @@
 #include <res/includes/GL/glew.h>
 #include "mandelbrot.h"
 
-Mandelbrot::Mandelbrot() {
-    counter = 0;
-    diff = 0.01f;
-    rgb = 2;
-    tex = 0;
+Mandelbrot::Mandelbrot(int width, int height) {
+    this->counter = 0;
+    colors = 0;
+    p = 2;
+    this->width = width;
+    this->height = height;
 }
 
 void Mandelbrot::Init() {
-    unsigned int texIDs[3] = { 0 , 1, 2}; //texture ids for the material (currently all 3)
+    unsigned int texIDs[3] = { 0 , 1, 2 }; //texture ids for the material (currently all 3)
     unsigned int slots[3] = { 0 , 0, 0 }; // ?
     AddShader("../res/shaders/myShader");
 
@@ -60,14 +61,11 @@ void Mandelbrot::Update(const glm::mat4 &MVP, const glm::mat4 &Model, const int 
     s->Bind();
     s->SetUniformMat4f("MVP", MVP);
     s->SetUniformMat4f("Normal", Model);
-    if(++counter == 200){
-        diff *= -1;
-        counter = 0;
-        tex = (tex + 1) % 3;
-        //s->SetUniform1i("sampler", tex);
-    }
-    s->SetUniform1f("p", p);
-    s->SetUniform1i("rgb", rgb);
+    s->SetUniform1i("p", p);
+    s->SetUniform1i("colors", colors);
+    s->SetUniform1i("width", width);
+    s->SetUniform1i("height", height);
+
     s->Unbind();
 }
 
@@ -76,8 +74,8 @@ Mandelbrot::~Mandelbrot(void) {
 }
 
 void Mandelbrot::change_rgb(bool plus) {
-    if(plus && rgb < 2) rgb++;
-    if(!plus && rgb > 0) rgb--;
+    // if(plus && rgb < 2) rgb++;
+    // if(!plus && rgb > 0) rgb--;
 }
 
 

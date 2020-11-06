@@ -51,6 +51,8 @@ void mouse_callback(GLFWwindow* window,int button, int action, int mods)
 	void window_size_callback(GLFWwindow* window, int width, int height)
 	{
 		Renderer* rndr = (Renderer*)glfwGetWindowUserPointer(window);
+		// Mandelbrot* scn = (Mandelbrot*)rndr->GetScene();
+		// scn->updateScreen
 		
 		rndr->Resize(width,height);
 		
