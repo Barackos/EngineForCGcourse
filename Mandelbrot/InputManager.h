@@ -40,17 +40,13 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 	Mandelbrot *scn = (Mandelbrot *)rndr->GetScene();
 	rndr->UpdatePosition((float)xpos, (float)ypos);
 
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
-	{
-		// rndr->MouseProccessing(GLFW_MOUSE_BUTTON_RIGHT);
-	}
-	else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 	{
 		double xrel = xpos - cursor_x;
 		double yrel = ypos - cursor_y;
-		// rndr->MoveCamera(0, scn->xTranslate, xrel > 0 ? 0.01f : -0.01f);
-		// rndr->MoveCamera(0, scn->yTranslate, yrel > 0 ? 0.01f : -0.01f);
-		// rndr->MouseProccessing(GLFW_MOUSE_BUTTON_LEFT);
+		rndr->MoveCamera(0, scn->xTranslate, xrel * -0.01f);
+		rndr->MoveCamera(0, scn->yTranslate, yrel * 0.01f);
+		//rndr->MouseProccessing(GLFW_MOUSE_BUTTON_LEFT);
 	}
 	cursor_x = xpos;
 	cursor_y = ypos;
@@ -94,10 +90,10 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 			scn->decreaseP();
 			break;
 		case GLFW_KEY_LEFT:
-			// scn->setP(false);
+			scn->lowerColors();
 			break;
 		case GLFW_KEY_RIGHT:
-			// scn->setP(true);
+			scn->raiseColors();
 			break;
 
 		default:

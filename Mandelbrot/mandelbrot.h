@@ -21,8 +21,9 @@ public:
     inline void SetCounter() { counter = tmp; }
     void increaseP() { p++; }
     void decreaseP() { if (p > 2) p--; }
+    void raiseColors() { colors *= 2; }
+    void lowerColors() { if (colors > 2) colors /= 2; }
     void updateScreen(int width, int height);
-    unsigned int TextureDesine(int width, int height);
 
 private:
     unsigned int counter;
