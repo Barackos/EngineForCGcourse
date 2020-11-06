@@ -12,14 +12,8 @@ void mouse_callback(GLFWwindow *window, int button, int action, int mods)
 	{
 		double x2, y2;
 		glfwGetCursorPos(window, &x2, &y2);
-		// if (rndr->Picking((int)x2, (int)y2))
-		// 	rndr->UpdatePosition(x2, y2);
-		//scn->ResetCounter();
 	}
-	//else
-	//	scn->SetCounter();
-	//std::cout << "yes" << std::endl;
-	rndr->ClearDrawFlag(1, 1);
+	//rndr->ClearDrawFlag(1, 1);
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
@@ -27,8 +21,10 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 	Renderer *rndr = (Renderer *)glfwGetWindowUserPointer(window);
 	Mandelbrot *scn = (Mandelbrot *)rndr->GetScene();
 
-	scn->MyTranslate(glm::vec3(0, 0, xoffset), 0);
-	rndr->MoveCamera(0, scn->zTranslate, (yoffset > 0) ? 0.4f : -0.4f);
+	//scn->MyTranslate(glm::vec3(0, 0, yoffset), 0);
+	scn->updateZoom(yoffset * -0.01f);
+	//rndr->MoveCamera(0, scn->zTranslate, yoffset);
+
 }
 
 double cursor_x = 0.0;
@@ -42,10 +38,13 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 	{
-		double xrel = xpos - cursor_x;
-		double yrel = ypos - cursor_y;
-		rndr->MoveCamera(0, scn->xTranslate, xrel * -0.01f);
-		rndr->MoveCamera(0, scn->yTranslate, yrel * 0.01f);
+		float xrel = xpos - cursor_x;
+		float yrel = ypos - cursor_y;
+
+		Mandelbrot *scn = (Mandelbrot *)rndr->GetScene();
+		scn->updateOffsets(xrel * -0.005f, yrel * 0.005f);
+		// rndr->MoveCamera(0, scn->xTranslate, xrel * -0.01f);
+		// rndr->MoveCamera(0, scn->yTranslate, yrel * 0.01f);
 		//rndr->MouseProccessing(GLFW_MOUSE_BUTTON_LEFT);
 	}
 	cursor_x = xpos;

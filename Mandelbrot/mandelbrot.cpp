@@ -8,6 +8,9 @@ Mandelbrot::Mandelbrot()
     this->counter = 0;
     colors = 16;
     p = 2;
+    x = 0;
+    y = 0;
+    zoom = 1;
 }
 
 void Mandelbrot::Init()
@@ -33,8 +36,29 @@ void Mandelbrot::Update(const glm::mat4 &MVP, const glm::mat4 &Model, const int 
     s->SetUniformMat4f("Normal", Model);
     s->SetUniform1i("p", p);
     s->SetUniform1i("colors", colors);
+    s->SetUniform1f("x", x);
+    s->SetUniform1f("y", y);
+    s->SetUniform1f("zoom", zoom);
 
     s->Unbind();
+}
+
+float boundOffset(float offset) {
+    if (offset > 1.5) return 1.5;
+    if (offset < -1.5) return -1.5;
+    return offset;
+}
+
+void Mandelbrot::updateOffsets(float rel_x, float rel_y) {
+    x = boundOffset(x + rel_x * zoom);
+    y = boundOffset(y + rel_y * zoom);
+}
+
+void Mandelbrot::updateZoom(float z) {
+    if (zoom + z > 2)
+        zoom = 2;
+    else if (zoom + z > 0)
+        zoom += z;
 }
 
 Mandelbrot::~Mandelbrot(void)

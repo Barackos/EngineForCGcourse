@@ -8,6 +8,8 @@ uniform sampler2D sampler;
 uniform int p;
 uniform int colors;
 
+uniform float x, y, zoom;
+
 #define MAX_ITERATIONS 100.0
 #define THRESHOLD 10.0f
 
@@ -29,7 +31,7 @@ float vec2Abs(vec2 num){
 void main()
 {
     vec2 agg = vec2(0.0f, 0.0f);
-    vec2 repositioned = vec2((complex.x) * 2 - 1, (complex.y) * 2 - 1);
+    vec2 repositioned = vec2((complex.x * 2 - 1) * zoom + x, (complex.y * 2 - 1) * zoom + y);
     int i; //iterations count
     for(i = 0; i < MAX_ITERATIONS; i++){
         agg = pow(agg, p) + repositioned; //z^p + c
