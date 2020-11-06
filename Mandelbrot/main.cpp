@@ -4,8 +4,8 @@
 
 int main(int argc,char *argv[])
 {
-	const int DISPLAY_WIDTH = 840;
-	const int DISPLAY_HEIGHT = 840;
+	const int DISPLAY_WIDTH = 1280;
+	const int DISPLAY_HEIGHT = 1280;
 	const float CAMERA_ANGLE = 0.0f;
 	const float NEAR = 1.0f;
 	const float FAR = 100.0f;
@@ -15,7 +15,7 @@ int main(int argc,char *argv[])
 	//y.push_back(DISPLAY_HEIGHT / 2);
 	Display display(DISPLAY_WIDTH, DISPLAY_HEIGHT, "OpenGL");
 	Renderer* rndr = new Renderer(CAMERA_ANGLE, (float)DISPLAY_WIDTH / 2 / DISPLAY_HEIGHT, NEAR, FAR); // adding a camera
-	Mandelbrot *scn = new Mandelbrot(DISPLAY_WIDTH, DISPLAY_HEIGHT);  //initializing scene
+	Mandelbrot *scn = new Mandelbrot();  //initializing scene
 	
 	Init(display); //adding callback functions
 	scn->Init();    //adding shaders, textures, shapes to scene
