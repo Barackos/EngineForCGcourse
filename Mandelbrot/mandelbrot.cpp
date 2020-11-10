@@ -55,10 +55,14 @@ void Mandelbrot::updateOffsets(float rel_x, float rel_y) {
 }
 
 void Mandelbrot::updateZoom(float z) {
+    float prevZoom = zoom;
     if (zoom + z > 2)
         zoom = 2;
     else if (zoom + z > 0)
         zoom += z;
+    
+    if (prevZoom != zoom)
+        std::cout << "Zoom ratio: " << 1 / zoom << std::endl;
 }
 
 Mandelbrot::~Mandelbrot(void)
