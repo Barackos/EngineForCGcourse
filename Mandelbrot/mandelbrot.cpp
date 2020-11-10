@@ -62,7 +62,7 @@ void Mandelbrot::updateZoom(float z) {
         zoom += z;
     
     if (prevZoom != zoom)
-        std::cout << "Zoom ratio: " << 1 / zoom << std::endl;
+        std::cout << "Pixel Width: " << (2 / 840.0 * zoom) << std::endl;
 }
 
 Mandelbrot::~Mandelbrot(void)
