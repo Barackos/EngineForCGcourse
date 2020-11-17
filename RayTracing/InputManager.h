@@ -22,7 +22,7 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 	Raytracing *scn = (Raytracing *)rndr->GetScene();
 
 	//scn->MyTranslate(glm::vec3(0, 0, yoffset), 0);
-	scn->updateZoom(yoffset * -0.01f);
+	//scn->updateZoom(yoffset * -0.01f);
 	//rndr->MoveCamera(0, scn->zTranslate, yoffset);
 
 }
@@ -42,7 +42,7 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 		float yrel = ypos - cursor_y;
 
 		Raytracing *scn = (Raytracing *)rndr->GetScene();
-		scn->updateOffsets(xrel * -0.005f, yrel * 0.005f);
+		// scn->updateOffsets(xrel * -0.005f, yrel * 0.005f);
 		// rndr->MoveCamera(0, scn->xTranslate, xrel * -0.01f);
 		// rndr->MoveCamera(0, scn->yTranslate, yrel * 0.01f);
 		//rndr->MouseProccessing(GLFW_MOUSE_BUTTON_LEFT);
@@ -81,18 +81,16 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 
 		case GLFW_KEY_UP:
 			// rndr->MoveCamera(0, scn->yTranslate, 0.4f);
-			scn->increaseP();
 			break;
 		case GLFW_KEY_DOWN:
 			//scn->shapeTransformation(scn->xGlobalRotate,-5.f);
 			// rndr->MoveCamera(0, scn->yTranslate, -0.4f);
-			scn->decreaseP();
 			break;
 		case GLFW_KEY_LEFT:
-			scn->lowerColors();
+			//scn->lowerColors();
 			break;
 		case GLFW_KEY_RIGHT:
-			scn->raiseColors();
+			//scn->raiseColors();
 			break;
 
 		default:
