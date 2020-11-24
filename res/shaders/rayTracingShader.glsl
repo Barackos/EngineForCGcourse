@@ -40,7 +40,7 @@ vec4 intersection(vec3 srcPoint, vec3 direction, vec4 obj)
         sqrCalc = sqrt(sqrCalc);
         float t1 = -vd + sqrCalc, t2 = -vd - sqrCalc;
         if (t1 < 0 && t2 < 0) return noInter; // sphere is behind us
-        t = (t1 < 0) ? t2 : t1;
+        t = (t1 < 0) ? t2 : (t2 < 0) ? t1 : min(t1, t2);
     }
     vec3 ip = srcPoint + t * direction;
     return vec4(ip.xyz, t);
@@ -62,8 +62,13 @@ Intersection get_intersecting_object(vec3 srcPoint, vec3 direction, int currObj)
 
 #define IS_REFLECTIVE_OBJECT(j) (j < sizes.z)
 #define IS_SPOT_LIGHT(j) (lightsDirection[j].w > 0.0)
-#define IS_BRIGHT_SQUARE mod(int(1.5*intersectionPoint.x), 2) == mod(int(1.5*intersectionPoint.y), 2)
 #define KS vec3(0.7, 0.7, 0.7)
+
+bool isBrightSquare(vec3 intersectionPoint) {
+    bool evenPlanes = intersectionPoint.x * intersectionPoint.y >= 0;
+    float equalModulus = mod(int(1.5*intersectionPoint.x), 2) - mod(int(1.5*intersectionPoint.y), 2);
+    return evenPlanes ? equalModulus == 0 : equalModulus != 0;
+}
 
 vec3 object_color(int objIndex, vec3 V, vec3 intersectionPoint, vec3 normal){
     float NL, VRN, light_dist, dp;
@@ -85,7 +90,7 @@ vec3 object_color(int objIndex, vec3 V, vec3 intersectionPoint, vec3 normal){
         IL = lightsIntensity[j].xyz * dot(lightsDirection[j].xyz, IS_SPOT_LIGHT(j) ? L : normal); // Intensity's A comp is redundant
         // Diffuse calculation
         NL = dot(L, normal) / (length(L) * length(normal));
-        dp = (objects[objIndex].w >= 0 || IS_BRIGHT_SQUARE) ? 1.0 : 0.5;
+        dp = (objects[objIndex].w >= 0 || isBrightSquare(intersectionPoint)) ? 1.0 : 0.5;
         color += dp * objColors[objIndex].xyz * NL * IL; 
         // Specular calculation
         VRN = pow(dot(V, reflect(L, normal)), objColors[objIndex].w); // power with shininess
@@ -96,7 +101,7 @@ vec3 object_color(int objIndex, vec3 V, vec3 intersectionPoint, vec3 normal){
 
 vec3 calcNormal(int objIndex, vec3 intersectionPoint){
     return (objects[objIndex].w < 0) ? normalize(objects[objIndex].xyz) // normal of shape
-        : normalize(intersectionPoint - objects[objIndex].xyz);
+        : -normalize(intersectionPoint - objects[objIndex].xyz);
 }
 
 #define REF_MAX_LEVEL 5
