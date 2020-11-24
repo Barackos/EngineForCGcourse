@@ -16,37 +16,40 @@ void mouse_callback(GLFWwindow *window, int button, int action, int mods)
 	//rndr->ClearDrawFlag(1, 1);
 }
 
+double cursor_x = 0.0;
+double cursor_y = 0.0;
+float zoom = 0.0;
+int picked = -1;
+bool pressed = false;
+
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
 	Renderer *rndr = (Renderer *)glfwGetWindowUserPointer(window);
 	Raytracing *scn = (Raytracing *)rndr->GetScene();
-
-	//scn->MyTranslate(glm::vec3(0, 0, yoffset), 0);
-	//scn->updateZoom(yoffset * -0.01f);
-	//rndr->MoveCamera(0, scn->zTranslate, yoffset);
-
+	scn->moveEye(0, 0, 0.015 * yoffset);
+	zoom += 0.015 * yoffset;
 }
-
-double cursor_x = 0.0;
-double cursor_y = 0.0;
 
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 {
 	Renderer *rndr = (Renderer *)glfwGetWindowUserPointer(window);
 	Raytracing *scn = (Raytracing *)rndr->GetScene();
 	rndr->UpdatePosition((float)xpos, (float)ypos);
-
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-	{
-		float xrel = xpos - cursor_x;
-		float yrel = ypos - cursor_y;
-
-		Raytracing *scn = (Raytracing *)rndr->GetScene();
-		// scn->updateOffsets(xrel * -0.005f, yrel * 0.005f);
-		// rndr->MoveCamera(0, scn->xTranslate, xrel * -0.01f);
-		// rndr->MoveCamera(0, scn->yTranslate, yrel * 0.01f);
-		//rndr->MouseProccessing(GLFW_MOUSE_BUTTON_LEFT);
-	}
+	float xrel = xpos - cursor_x;
+	float yrel = ypos - cursor_y;
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS){
+		float xs = (xpos / 420) - 1;
+		float ys = (ypos / 420) - 1;
+		if(!pressed && picked == -1)
+			picked = scn->pickSphere(xs, -ys);
+		scn->moveSphere(picked, xrel, -yrel);
+		if(!pressed) pressed = true;
+	} else {
+		//if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+		//	scn->moveEye(-0.015 * xrel, 0.015 * yrel, 0);
+		picked = -1; // stop moving object once not clicking
+		pressed = false;
+	}	
 	cursor_x = xpos;
 	cursor_y = ypos;
 }

@@ -27,16 +27,15 @@ vec4 intersection(vec3 srcPoint, vec3 direction, vec4 obj)
     if (obj.w < 0) {
         // Ax + By + Cz + D
         vec3 normal = obj.xyz;
-        float d = obj.w;
         float denominator = dot(direction, normal);
         if (denominator == 0) return noInter; // no intersection
-        t = -(dot(srcPoint, normal) + d) / denominator;
+        t = -(dot(srcPoint, normal) + obj.w) / denominator;
     } else { //Sphere
         // x = s + td
         // t = -(v * d) ± sqrt((v*d)^2 -(v^2-r^2))
         vec3 v = srcPoint - obj.xyz; // obj.xyz = center of sphere
         float vd = dot(direction, v);
-        float sqrCalc = dot(vd, vd) - (dot(v, v) - dot(obj.w, obj.w));
+        float sqrCalc = vd * vd - (dot(v, v) - obj.w * obj.w);
         if(sqrCalc < 0) return noInter; // no intersection
         sqrCalc = sqrt(sqrCalc);
         float t1 = -vd + sqrCalc, t2 = -vd - sqrCalc;
@@ -61,35 +60,38 @@ Intersection get_intersecting_object(vec3 srcPoint, vec3 direction, int currObj)
     return Intersection(inter.xyz, inter.w, idxInter);
 }
 
+#define IS_REFLECTIVE_OBJECT(j) (j < sizes.z)
 #define IS_SPOT_LIGHT(j) (lightsDirection[j].w > 0.0)
-#define IS_DARK_SQUARE mod(int(1.5*intersectionPoint.x), 2) == mod(int(1.5*intersectionPoint.y), 2)
+#define IS_BRIGHT_SQUARE mod(int(1.5*intersectionPoint.x), 2) == mod(int(1.5*intersectionPoint.y), 2)
 #define KS vec3(0.7, 0.7, 0.7)
 
 vec3 object_color(int objIndex, vec3 V, vec3 intersectionPoint, vec3 normal){
-    float NL, VRN, light_dist, o_dist, dp;
+    float NL, VRN, light_dist, dp;
+    Intersection o;
     vec3 L, IL;
     vec3 color = (ambient * objColors[objIndex]).xyz; // ambient color of object
     for(int j = 0; j < sizes.y; j++) { // iterate through light sources
-        L = IS_SPOT_LIGHT(j) ? normalize(lightPosition[j].xyz - intersectionPoint)
-            : normalize(-lightsDirection[j].xyz); // direction to light source
+        L = IS_SPOT_LIGHT(j) ? normalize(intersectionPoint - lightPosition[j].xyz)
+            : normalize(lightsDirection[j].xyz); // direction from light source
         // Check for shadow
         light_dist = IS_SPOT_LIGHT(j) ? length(lightPosition[j].xyz - intersectionPoint)
             : -1; // infinite distance for directional light
-        o_dist = get_intersecting_object(intersectionPoint, L, objIndex).dist;
-        if(o_dist != 0.0 && (light_dist == -1 || o_dist < light_dist)) continue;
+        o = get_intersecting_object(intersectionPoint, -L, objIndex);
+        if(objects[o.idxInter].w > 0 && o.dist != 0.0 // planes do not cause shadow
+            && (light_dist == -1 || o.dist < light_dist)) continue;
+        // Light intensity calculation
+        if(IS_SPOT_LIGHT(j) && // no lighting from this spot if we're outside it's range
+            (dot(L, lightsDirection[j].xyz) / (length(L) * length(lightsDirection[j].xyz)) <= lightPosition[j].w)) continue;
+        IL = lightsIntensity[j].xyz * dot(lightsDirection[j].xyz, IS_SPOT_LIGHT(j) ? L : normal); // Intensity's A comp is redundant
         // Diffuse calculation
-        // GL_SPOT_CUTOFF should be added to spot calculation
-        IL = lightsIntensity[j].xyz * dot(lightsDirection[j].xyz, L); // Intensity's A comp is redundant
         NL = dot(L, normal) / (length(L) * length(normal));
-        dp = (objects[objIndex].w >= 0 || IS_DARK_SQUARE) ? 1.0 : 0.5;
+        dp = (objects[objIndex].w >= 0 || IS_BRIGHT_SQUARE) ? 1.0 : 0.5;
         color += dp * objColors[objIndex].xyz * NL * IL; 
         // Specular calculation
-        // @@ LOOKS GOOD ON POWERS OF 1,3,5
-        // @@ CHECK REFLECT IMPLEMENTATION
-        VRN = pow(dot(V, reflect(-L, normal)), objColors[objIndex].w); // power with shininess
+        VRN = pow(dot(V, reflect(L, normal)), objColors[objIndex].w); // power with shininess
         color += KS * VRN * IL;
     }
-    return color;
+    return IS_REFLECTIVE_OBJECT(objIndex) ? 0.5 * color : color;
 }
 
 vec3 calcNormal(int objIndex, vec3 intersectionPoint){
@@ -97,26 +99,21 @@ vec3 calcNormal(int objIndex, vec3 intersectionPoint){
         : normalize(intersectionPoint - objects[objIndex].xyz);
 }
 
-#define REF_MAX_LEVEL 1
+#define REF_MAX_LEVEL 5
 
 vec3 colorCalc(vec3 eye)
 {
-    vec3 V = normalize(position - eye); // light ray direction vector
-    vec3 color = ambient.xyz; // background color
-    Intersection inter = get_intersecting_object(eye, V, -1);
-    if(inter.idxInter != -1) {
-        vec3 normal = calcNormal(inter.idxInter, inter.intersectionPoint);
+    vec3 V = normalize(position - eye), normal; // light ray direction vector
+    vec3 color = vec3(0.0, 0.0, 0.0); // background color
+    Intersection inter = Intersection(eye, 0, -1);
+
+    for(int level = 0; level < REF_MAX_LEVEL; level++){
+        inter = get_intersecting_object(inter.intersectionPoint, V, inter.idxInter);
+        if(inter.idxInter == -1) break; // no intersecting object
+        normal = calcNormal(inter.idxInter, inter.intersectionPoint);
         color += object_color(inter.idxInter, V, inter.intersectionPoint, normal);
-        vec3 R; // mirrored ray direction
-        for(int level = 0; level < REF_MAX_LEVEL; level++){
-            if(inter.idxInter > sizes.z) break; // object is not reflective
-            R = normalize(reflect(V, normal));
-            inter = get_intersecting_object(inter.intersectionPoint, R, inter.idxInter);
-            if(inter.dist == 0.0) break;
-            normal = calcNormal(inter.idxInter, inter.intersectionPoint);
-            // @@ should call colorCalc, but can't have recursion.
-            color += KS * object_color(inter.idxInter, R, inter.intersectionPoint, normal);
-        }
+        if(!IS_REFLECTIVE_OBJECT(inter.idxInter)) break; // stop tracing when object is not reflective
+        V = normalize(reflect(V, normal)); // mirrored ray direction for Reflection calculation
     }
     return clamp(color, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
 }

@@ -9,13 +9,15 @@ public:
     void Init();
     void Update(const glm::mat4 &MVP, const glm::mat4 &Model, const int shaderIndx);
 
-    //void WhenRotate();
-    //void WhenTranslate();
-    //void Motion();
+    void moveEye(float x, float y, float z);
+    int pickSphere(float x, float y);
+    void moveSphere(int index, float xr, float yr);
 
     ~Raytracing(void);
 
 private:
     unsigned int counter;
     SceneData* data;
+
+    float intersection(glm::vec3& srcPoint, glm::vec3& dirction, int i);
 };
