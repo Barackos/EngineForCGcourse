@@ -38,8 +38,8 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 	float xrel = xpos - cursor_x;
 	float yrel = ypos - cursor_y;
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS){
-		float xs = (xpos / 420) - 1;
-		float ys = (ypos / 420) - 1;
+		float xs = (xpos / 420.0) - 1;
+		float ys = (ypos / 420.0) - 1;
 		if(!pressed && picked == -1)
 			picked = scn->pickSphere(xs, -ys);
 		scn->moveSphere(picked, xrel, -yrel);

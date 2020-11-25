@@ -18,7 +18,7 @@ struct Intersection{
     int idxInter;
 };
 
-vec4 intersection(vec3 srcPoint, vec3 direction, vec4 obj)
+vec4 intersection(vec3 srcPoint, vec3 direction, vec4 obj, bool c)
 {
     vec4 noInter = vec4(0, 0, 0, 0); // { x , y , z , distance }
     float t;
@@ -39,8 +39,9 @@ vec4 intersection(vec3 srcPoint, vec3 direction, vec4 obj)
         if(sqrCalc < 0) return noInter; // no intersection
         sqrCalc = sqrt(sqrCalc);
         float t1 = -vd + sqrCalc, t2 = -vd - sqrCalc;
-        if (t1 < 0 && t2 < 0) return noInter; // sphere is behind us
-        t = (t1 < 0) ? t2 : (t2 < 0) ? t1 : min(t1, t2);
+        if (t1 <= 0 && t2 <= 0) return noInter; // sphere is behind us
+        if(c && abs(t1) < obj.w) return noInter;
+        t = (t2 <= 0) ? t1 : t2; // t2 is always smaller when both positive
     }
     vec3 ip = srcPoint + t * direction;
     return vec4(ip.xyz, t);
@@ -49,10 +50,11 @@ vec4 intersection(vec3 srcPoint, vec3 direction, vec4 obj)
 Intersection get_intersecting_object(vec3 srcPoint, vec3 direction, int currObj){
     vec4 inter = vec4(0, 0, 0, 0), curr_inter;
     int idxInter = -1;
+    float thr = 0.0;
     for(int i = 0; i < sizes.x; i++){ // iterate through objects
-        if(i == currObj) continue; // skips the same object
-        curr_inter = intersection(srcPoint, direction, objects[i]);
-        if(curr_inter.w > 0 && (idxInter == -1 || curr_inter.w < inter.w)){
+        if(i == currObj) thr = 0.09999; // skips the same object
+        curr_inter = intersection(srcPoint, direction, objects[i], i == currObj);
+        if(curr_inter.w > thr && (idxInter == -1 || curr_inter.w < inter.w)){
             idxInter = i;
             inter = curr_inter;
         }
@@ -73,7 +75,7 @@ bool isBrightSquare(vec3 intersectionPoint) {
 vec3 object_color(int objIndex, vec3 V, vec3 intersectionPoint, vec3 normal){
     float NL, VRN, light_dist, dp;
     Intersection o;
-    vec3 L, IL;
+    vec3 L, IL, ips, ips2;
     vec3 color = (ambient * objColors[objIndex]).xyz; // ambient color of object
     for(int j = 0; j < sizes.y; j++) { // iterate through light sources
         L = IS_SPOT_LIGHT(j) ? normalize(intersectionPoint - lightPosition[j].xyz)
@@ -82,7 +84,7 @@ vec3 object_color(int objIndex, vec3 V, vec3 intersectionPoint, vec3 normal){
         light_dist = IS_SPOT_LIGHT(j) ? length(lightPosition[j].xyz - intersectionPoint)
             : -1; // infinite distance for directional light
         o = get_intersecting_object(intersectionPoint, -L, objIndex);
-        if(objects[o.idxInter].w > 0 && o.dist != 0.0 // planes do not cause shadow
+        if(objects[o.idxInter].w > 0 && o.dist > 0.0 // planes do not cause shadow
             && (light_dist == -1 || o.dist < light_dist)) continue;
         // Light intensity calculation
         if(IS_SPOT_LIGHT(j) && // no lighting from this spot if we're outside it's range
