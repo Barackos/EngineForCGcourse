@@ -18,7 +18,7 @@ struct Intersection{
     int idxInter;
 };
 
-vec4 intersection(vec3 srcPoint, vec3 direction, vec4 obj, bool c)
+vec4 intersection(vec3 srcPoint, vec3 direction, vec4 obj)
 {
     vec4 noInter = vec4(0, 0, 0, 0); // { x , y , z , distance }
     float t;
@@ -39,9 +39,9 @@ vec4 intersection(vec3 srcPoint, vec3 direction, vec4 obj, bool c)
         if(sqrCalc < 0) return noInter; // no intersection
         sqrCalc = sqrt(sqrCalc);
         float t1 = -vd + sqrCalc, t2 = -vd - sqrCalc;
-        if (t1 <= 0 && t2 <= 0) return noInter; // sphere is behind us
-        if(c && abs(t1) < obj.w) return noInter;
-        t = (t2 <= 0) ? t1 : t2; // t2 is always smaller when both positive
+        if (t1 < 0 && t2 < 0) return noInter; // sphere is behind us
+        // if(c && abs(t1) < obj.w) return noInter;
+        t = (t2 < 0) ? t1 : (t1 < 0) ? t2 : min(t1, t2); // t2 is always smaller when both positive
     }
     vec3 ip = srcPoint + t * direction;
     return vec4(ip.xyz, t);
@@ -52,9 +52,9 @@ Intersection get_intersecting_object(vec3 srcPoint, vec3 direction, int currObj)
     int idxInter = -1;
     float thr = 0.0;
     for(int i = 0; i < sizes.x; i++){ // iterate through objects
-        if(i == currObj) thr = 0.09999; // skips the same object
-        curr_inter = intersection(srcPoint, direction, objects[i], i == currObj);
-        if(curr_inter.w > thr && (idxInter == -1 || curr_inter.w < inter.w)){
+        if(i == currObj) continue; // skips the same object
+        curr_inter = intersection(srcPoint, direction, objects[i]);
+        if(curr_inter.w > 0 && (idxInter == -1 || curr_inter.w < inter.w)){
             idxInter = i;
             inter = curr_inter;
         }
@@ -118,8 +118,10 @@ vec3 colorCalc(vec3 eye)
         inter = get_intersecting_object(inter.intersectionPoint, V, inter.idxInter);
         if(inter.idxInter == -1) break; // no intersecting object
         normal = calcNormal(inter.idxInter, inter.intersectionPoint);
-        color += object_color(inter.idxInter, V, inter.intersectionPoint, normal);
-        if(!IS_REFLECTIVE_OBJECT(inter.idxInter)) break; // stop tracing when object is not reflective
+        if(!IS_REFLECTIVE_OBJECT(inter.idxInter)) { // stop tracing when object is not reflective
+            color += object_color(inter.idxInter, V, inter.intersectionPoint, normal);
+            break;
+        }
         V = normalize(reflect(V, normal)); // mirrored ray direction for Reflection calculation
     }
     return clamp(color, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
