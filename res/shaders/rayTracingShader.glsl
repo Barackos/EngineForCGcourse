@@ -18,7 +18,7 @@ struct Intersection{
     int idxInter;
 };
 
-vec4 intersection(vec3 srcPoint, vec3 direction, vec4 obj)
+vec4 intersection(vec3 srcPoint, vec3 direction, vec4 obj, bool c)
 {
     vec4 noInter = vec4(0, 0, 0, 0); // { x , y , z , distance }
     float t;
@@ -41,7 +41,7 @@ vec4 intersection(vec3 srcPoint, vec3 direction, vec4 obj)
         float t1 = -vd + sqrCalc, t2 = -vd - sqrCalc;
         if (t1 < 0 && t2 < 0) return noInter; // sphere is behind us
         // if(c && abs(t1) < obj.w) return noInter;
-        t = (t2 < 0) ? t1 : (t1 < 0) ? t2 : min(t1, t2); // t2 is always smaller when both positive
+        t = (t2 <= 0) ? t1 : t2; // t2 is always smaller when both positive
     }
     vec3 ip = srcPoint + t * direction;
     return vec4(ip.xyz, t);
@@ -52,9 +52,9 @@ Intersection get_intersecting_object(vec3 srcPoint, vec3 direction, int currObj)
     int idxInter = -1;
     float thr = 0.0;
     for(int i = 0; i < sizes.x; i++){ // iterate through objects
-        if(i == currObj) continue; // skips the same object
-        curr_inter = intersection(srcPoint, direction, objects[i]);
-        if(curr_inter.w > 0 && (idxInter == -1 || curr_inter.w < inter.w)){
+        if(i == currObj) thr = 0.09999; // skips the same object
+        curr_inter = intersection(srcPoint, direction, objects[i], i == currObj);
+        if(curr_inter.w > thr && (idxInter == -1 || curr_inter.w < inter.w)) {
             idxInter = i;
             inter = curr_inter;
         }
