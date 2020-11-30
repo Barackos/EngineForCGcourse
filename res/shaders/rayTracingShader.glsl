@@ -9,6 +9,7 @@ uniform vec4[10] lightsDirection;
 uniform vec4[10] lightsIntensity;
 uniform vec4[10] lightPosition;
 uniform ivec4 sizes; //{number of objects , number of lights , rCounter, hight}  
+uniform vec4 screen;
 
 in vec3 position;
 
@@ -52,7 +53,7 @@ Intersection get_intersecting_object(vec3 srcPoint, vec3 direction, int currObj)
     int idxInter = -1;
     float thr = 0.0;
     for(int i = 0; i < sizes.x; i++){ // iterate through objects
-        if(i == currObj) thr = 0.09999; // skips the same object
+        if(i == currObj && objects[currObj].w < 0) continue; // skips the same object
         curr_inter = intersection(srcPoint, direction, objects[i], i == currObj);
         if(curr_inter.w > thr && (idxInter == -1 || curr_inter.w < inter.w)){
             idxInter = i;
@@ -110,7 +111,7 @@ vec3 calcNormal(int objIndex, vec3 intersectionPoint){
 
 vec3 colorCalc(vec3 eye)
 {
-    vec3 V = normalize(position - eye), normal; // light ray direction vector
+    vec3 V = normalize(position + screen.xyz - eye), normal; // light ray direction vector
     vec3 color = vec3(0.0, 0.0, 0.0); // background color
     Intersection inter = Intersection(eye, 0, -1);
 

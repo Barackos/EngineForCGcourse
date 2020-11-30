@@ -18,6 +18,7 @@ public:
 private:
     unsigned int counter;
     SceneData* data;
+    glm::vec4 screen;
 
     float intersection(glm::vec3& srcPoint, glm::vec3& dirction, int i);
 };

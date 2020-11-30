@@ -18,7 +18,6 @@ void mouse_callback(GLFWwindow *window, int button, int action, int mods)
 
 double cursor_x = 0.0;
 double cursor_y = 0.0;
-float zoom = 0.0;
 int picked = -1;
 bool pressed = false;
 
@@ -26,8 +25,7 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
 	Renderer *rndr = (Renderer *)glfwGetWindowUserPointer(window);
 	Raytracing *scn = (Raytracing *)rndr->GetScene();
-	scn->moveEye(0, 0, 0.015 * yoffset);
-	zoom += 0.015 * yoffset;
+	scn->moveEye(0, 0, -0.015 * yoffset);
 }
 
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
@@ -37,7 +35,7 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 	rndr->UpdatePosition((float)xpos, (float)ypos);
 	float xrel = xpos - cursor_x;
 	float yrel = ypos - cursor_y;
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS){
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS){
 		float xs = (xpos / 420.0) - 1;
 		float ys = (ypos / 420.0) - 1;
 		if(!pressed && picked == -1)
@@ -45,8 +43,8 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 		scn->moveSphere(picked, xrel, -yrel);
 		if(!pressed) pressed = true;
 	} else {
-		//if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-		//	scn->moveEye(-0.015 * xrel, 0.015 * yrel, 0);
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+			scn->moveEye(-0.015 * xrel, 0.015 * yrel, 0);
 		picked = -1; // stop moving object once not clicking
 		pressed = false;
 	}	

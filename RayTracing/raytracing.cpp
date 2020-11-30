@@ -8,6 +8,7 @@ Raytracing::Raytracing(const std::string& fileName)
 {
     this->data = new SceneData();
     SceneParser parser(fileName, this->data);
+    screen = glm::vec4(0.0, 0.0, 0.0, 0.0);
 }
 
 void Raytracing::Init()
@@ -39,6 +40,7 @@ void Raytracing::Update(const glm::mat4 &MVP, const glm::mat4 &Model, const int 
     s->SetUniform4fv("lightsDirection", &(this->data->directions[0]), this->data->directions.size());
     s->SetUniform4fv("lightsIntensity", &(this->data->intensities[0]), this->data->intensities.size());
     s->SetUniform4fv("lightPosition", &(this->data->lights[0]), this->data->lights.size());
+    s->SetUniform4f("screen", this->screen.x, this->screen.y, this->screen.z, 0);
     s->Unbind();
 }
 
@@ -46,6 +48,9 @@ void Raytracing::moveEye(float x, float y, float z){
     this->data->eye.x += x;
     this->data->eye.y += y;
     this->data->eye.z += z;
+    this->screen.x += x;
+    this->screen.y += y;
+    this->screen.z += z;
 }
 
 float dot(glm::vec3& v1, glm::vec3& v2){
@@ -61,10 +66,8 @@ float Raytracing::intersection(glm::vec3& srcPoint, glm::vec3& direction, int i)
     if(sqrCalc < 0) return -1; // no intersection
     sqrCalc = sqrt(sqrCalc);
     float t1 = abs(-vd + sqrCalc), t2 = abs(-vd - sqrCalc);
-    std::cout << t1 << ", " << t2 << std::endl;
     if (t1 <= 0 && t2 <= 0) return -1; // sphere is behind us
     float t = (t2 <= 0) ? t1 : t2;
-    std::cout << srcPoint.x + t * direction.x << ", " << srcPoint.y + t * direction.y <<  ", " << srcPoint.z + t * direction.z << std::endl;
     return t;
 }
 
@@ -78,22 +81,13 @@ void normalize(glm::vec3& vec){
 int Raytracing::pickSphere(float x, float y){
     int index = -1, dist = -1;
     glm::vec3 eye(this->data->eye.x, this->data->eye.y, this->data->eye.z);
-    glm::vec3 pos(x, y, 0);
+    glm::vec3 pos(x + screen.x, y + screen.y, screen.z);
     glm::vec3 direction(pos.x - eye.x, pos.y - eye.y, pos.z - eye.z);
     normalize(direction);
-        std::cout << pos.x << ", " << pos.y << ", " << pos.z << std::endl;
 
     for(int i = 0; i < this->data->objects.size(); i++){
         glm::vec4 obj = this->data->objects[i];
         if(obj.w < 0) continue; // skipping planes
-        /*
-        if((x - obj.x) * (x - obj.x) + (y - obj.y) * (y - obj.y) <= obj.w * obj.w 
-            && (dist == -1 || obj.z > dist)){
-            index = i;
-            dist = obj.z;
-        }*/
-    std::cout << "Object " << i << std::endl;
-
         float curr = intersection(pos, direction, i);
         if(curr != -1 && (dist == -1 || curr < dist)){
             index = i;
