@@ -1,9 +1,9 @@
 
 #include <iostream>
 #include <res/includes/GL/glew.h>
-#include "RuviksCube.h"
+#include "RubiksCube.h"
 
-RuviksCube::RuviksCube()
+RubiksCube::RubiksCube()
 {
     this->counter = 0;
     colors = 16;
@@ -13,7 +13,7 @@ RuviksCube::RuviksCube()
     zoom = 1;
 }
 
-void RuviksCube::Init()
+void RubiksCube::Init()
 {
     unsigned int texIDs[3] = {0, 1, 2}; //texture ids for the material (currently all 3)
     unsigned int slots[3] = {0, 0, 0};  // ?
@@ -24,7 +24,7 @@ void RuviksCube::Init()
     SetShapeShader(0, 0);
 }
 
-void RuviksCube::Update(const glm::mat4 &MVP, const glm::mat4 &Model, const int shaderIndx)
+void RubiksCube::Update(const glm::mat4 &MVP, const glm::mat4 &Model, const int shaderIndx)
 {
     Shader *s = shaders[shaderIndx];
     if (shapes[pickedShape]->GetMaterial() >= 0 && !materials.empty())
@@ -49,12 +49,12 @@ float boundOffset(float offset) {
     return offset;
 }
 
-void RuviksCube::updateOffsets(float rel_x, float rel_y) {
+void RubiksCube::updateOffsets(float rel_x, float rel_y) {
     x = boundOffset(x + rel_x * zoom);
     y = boundOffset(y + rel_y * zoom);
 }
 
-void RuviksCube::updateZoom(float z) {
+void RubiksCube::updateZoom(float z) {
     float prevZoom = zoom;
     if (zoom + z > 2)
         zoom = 2;
@@ -65,6 +65,6 @@ void RuviksCube::updateZoom(float z) {
         std::cout << "Pixel Width: " << (2 / 840.0 * zoom) << std::endl;
 }
 
-RuviksCube::~RuviksCube(void)
+RubiksCube::~RubiksCube(void)
 {
 }

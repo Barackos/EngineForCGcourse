@@ -1,10 +1,10 @@
 #pragma once
 #include "scene.h"
 
-class RuviksCube : public Scene
+class RubiksCube : public Scene
 {
 public:
-    RuviksCube();
+    RubiksCube();
     void Init();
     void Update(const glm::mat4 &MVP, const glm::mat4 &Model, const int shaderIndx);
 
@@ -12,7 +12,7 @@ public:
     //void WhenTranslate();
     //void Motion();
 
-    ~RuviksCube(void);
+    ~RubiksCube(void);
     inline void ResetCounter()
     {
         tmp = counter;
