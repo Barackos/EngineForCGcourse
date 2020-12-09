@@ -1,17 +1,19 @@
 #version 330
 
-attribute vec3 position;
-attribute vec3 color;
-attribute vec3 normal;
-attribute vec2 texCoords;
+in vec3 position;
+in vec3 color;
+in vec3 normal;
+in vec2 texCoords;
 
-uniform mat4 MVP;
-uniform mat4 Normal;
 
-//out vec3 color0;
+uniform mat4 Proj;
+uniform mat4 View;
+uniform mat4 Model;
+
+out vec3 normal0;
 
 void main()
 {
-	//color0 = color;
-	gl_Position = MVP *Normal* vec4(position, 1.0);
+	normal0 = vec3(Model* vec4(normal, 0.0));
+	gl_Position = Proj *View * Model* vec4(position, 1.0);
 }
