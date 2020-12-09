@@ -72,7 +72,7 @@ float Raytracing::intersection(glm::vec3& srcPoint, glm::vec3& direction, int i)
 }
 
 void normalize(glm::vec3& vec){
-    float sum = vec.x + vec.y + vec.z;
+    float sum = sqrt(vec.x + vec.y + vec.z);
     vec.x /= sum;
     vec.y /= sum;
     vec.z /= sum;
