@@ -35,7 +35,7 @@ void Renderer::Init(Scene* scene,  std::list<int>xViewport,  std::list<int>yView
 	if (xViewport.empty() && yViewport.empty())
 	{
 		viewports.push_back(viewport);
-		drawInfo.push_back(new DrawInfo(0, 0, 1, 0,  toClear | blackClear));
+		drawInfo.push_back(new DrawInfo(0, 0, 1, 0,  toClear | blackClear | depthTest));
 	}
 	else
 	{

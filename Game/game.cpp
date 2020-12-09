@@ -28,7 +28,7 @@ void Game::Init()
 	
 	AddShader("../res/shaders/pickingShader");	
 	AddShader("../res/shaders/basicShader2");
-	AddShader("../res/shaders/basicShader");
+	//AddShader("../res/shaders/basicShader");
 	
 	AddTexture("../res/textures/box0.bmp",2);
 	//AddTexture("../res/textures/grass.bmp", 2);
@@ -36,24 +36,34 @@ void Game::Init()
 
 	AddMaterial(texIDs,slots, 2);
 	AddMaterial(texIDs+1,slots+1, 2);
-	AddShape(Cube, -1, TRIANGLES);
-	AddShape(Cube, -1, TRIANGLES);
-	AddShape(Plane, -1, TRIANGLES);
-	AddShapeViewport(2, 1);
-	RemoveShapeViewport(2, 0);
-	SetShapeShader(2, 2);
+	//AddShape(Cube, -1, TRIANGLES);
+	for(int i = 0; i < 27; i++){
+        AddShape(Cube, -1, TRIANGLES);
+        SetShapeShader(i, 1);
+        pickedShape = i;
+        SetShapeMaterial(i, 0);
+        glm::vec3 walls = glm::vec3(i % 3 - 1, (i % 9) / 3 - 1, i / 9 - 1);
+        ShapeTransformation(xTranslate, -2*(walls.x));
+        ShapeTransformation(yTranslate, -2*(walls.y));
+        ShapeTransformation(zTranslate, -2*(walls.z));
+    }
+	//AddShape(Cube, -1, TRIANGLES);
+	//AddShape(Plane, -1, TRIANGLES);
+	//AddShapeViewport(2, 1);
+	//RemoveShapeViewport(2, 0);
+	//SetShapeShader(2, 2);
 
 	pickedShape = 0;
-	SetShapeMaterial(0, 0);
-	ShapeTransformation(xTranslate, -1);
+	//SetShapeMaterial(0, 1);
+	//ShapeTransformation(xTranslate, -1);
 
 	pickedShape = 1;
-	ShapeTransformation(xTranslate, 1);
-	SetShapeMaterial(1, 1);
+	//ShapeTransformation(xTranslate, 1);
+	//SetShapeMaterial(1, 1);
 	pickedShape = -1;
 
 	pickedShape = 2;
-	SetShapeMaterial(2, 2);
+	//SetShapeMaterial(2, 2);
 	pickedShape = -1;
 	
 	//ReadPixel(); //uncomment when you are reading from the z-buffer
@@ -72,16 +82,18 @@ void Game::Update(const glm::mat4 &MVP,const glm::mat4 &Model,const int  shaderI
 	if (shaderIndx != 2)
 	{
 		s->SetUniformMat4f("MVP", MVP);
+		s->SetUniformMat4f("View", MVP);
 		s->SetUniformMat4f("Normal", Model);
+		s->SetUniformMat4f("Model", Model);
 	}
 	else
 	{
 		s->SetUniformMat4f("MVP", glm::mat4(1));
 		s->SetUniformMat4f("Normal", glm::mat4(1));
 	}
-	s->SetUniform1i("sampler1", materials[shapes[pickedShape]->GetMaterial()]->GetSlot(0));
+	s->SetUniform1i("sampler", materials[shapes[pickedShape]->GetMaterial()]->GetSlot(0));
 	if(shaderIndx!=2)
-		s->SetUniform1i("sampler2", materials[shapes[pickedShape]->GetMaterial()]->GetSlot(1));
+		s->SetUniform1i("sampler", materials[shapes[pickedShape]->GetMaterial()]->GetSlot(1));
 
 	s->Unbind();
 }
