@@ -1,0 +1,3 @@
+#!/bin/bash
+
+cd ../ && make RuviksCube && cd RuviksCube && ./RuviksCube
