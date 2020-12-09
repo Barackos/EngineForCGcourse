@@ -11,3 +11,4 @@ Makefile
 CMakeCache.txt
 *.cmake
 Mandelbrot/Mandelbrot
+.DS_Store
