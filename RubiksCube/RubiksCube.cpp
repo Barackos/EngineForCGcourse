@@ -130,45 +130,28 @@ void RubiksCube::updateIndexes() {
     for (int i = 0; i < c2; i++)
         std::cout << bricks[toRotate[i]] << ", ";
     std::cout << "\n";
+    switchLines(c, rotationMatrix);
     if (clockwise) {
         switch(rotatingWall) {
             case LEFT:
-                switchLines(c, rotationMatrix);
-                adTranspose(c, rotationMatrix);
-            break;
-            case RIGHT:
-                switchLines(c, rotationMatrix);
-                break;
             case UP:
             case BACK:
-                rotate(c, rotationMatrix);
-                break;
-            case BOTTOM:
-                transpose(c, rotationMatrix);
-                break;
-            case FRONT:
                 adTranspose(c, rotationMatrix);
+                break;
+            default:
+                transpose(c, rotationMatrix);
                 break;
         }
     }
     else {
         switch(rotatingWall) {
-            case LEFT:
             case RIGHT:
-                rotate(c, rotationMatrix);
-                rotate(c, rotationMatrix);
-                break;
-            case UP:
-            case BACK:
-                rotate(c, rotationMatrix);
-                rotate(c, rotationMatrix);
-                rotate(c, rotationMatrix);
-                break;
             case BOTTOM:
+            case FRONT:
                 adTranspose(c, rotationMatrix);
                 break;
-            case FRONT:
-                rotate(c, rotationMatrix);
+            default:
+                transpose(c, rotationMatrix);
                 break;
         }
     }
