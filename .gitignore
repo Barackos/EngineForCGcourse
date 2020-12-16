@@ -11,4 +11,5 @@ Makefile
 CMakeCache.txt
 *.cmake
 Mandelbrot/Mandelbrot
+RubiksCube/RubiksCube
 .DS_Store
