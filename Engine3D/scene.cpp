@@ -144,6 +144,7 @@ void Scene::ShapeTransformation(int type, float amt)
 
 bool Scene::Picking(unsigned char data[4])
 {
+		std::cout << (int)(data[0]) << ", " << (int)(data[1]) << ", " << (int)(data[2]) << ", " << (int)(data[3]) << "\n";
 		pickedShape = -1;
 		return false;
 		//WhenPicked();	

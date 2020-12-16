@@ -8,6 +8,7 @@ public:
     RubiksCube(int c);
     void Init();
     void Update(const glm::mat4 &MVP, const glm::mat4 &Model, const int shaderIndx);
+    virtual void WhenPicked();
 
     ~RubiksCube(void);
     enum walls { LEFT, RIGHT, UP, BOTTOM, FRONT, BACK };
@@ -20,6 +21,7 @@ public:
     void rotateCube(int i);
     void runTask(int task);
     void addTask(int task);
+    void zoom(float z);
 
 private:
     int c, c2, c3, counter, speed, rotations, rotatingWall;

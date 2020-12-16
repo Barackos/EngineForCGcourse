@@ -103,68 +103,21 @@ void adTranspose(int n, int **rotationMatrix) {
 }
 
 void RubiksCube::updateIndexes() {
-    std::cout << "BEFORE:\n";
-    for (int i = 0; i < c3; i++)
-        std::cout << bricks[i] << ", ";
-    std::cout << "\n";
-
     int **rotationMatrix = new int*[c];
     for (int i = 0; i < c2; i++) {
         if (i % c == 0)
             rotationMatrix[i / c] = new int[c];
         rotationMatrix[i / c][i % c] = toRotate[i];
     }
-    std::cout << "MATRIX:\n";
-    for (int i = 0; i < c; i++){
-        for (int j = 0; j < c; j++)
-            std::cout << rotationMatrix[i][j] << "\t";
-        std::cout << "\n";
-    }
-    std::cout << "\n";
-    std::cout << "CUBES TO ROTATE:\n";
-    std::cout << "INDEXES: \t";
-    for (int i = 0; i < c2; i++)
-        std::cout << toRotate[i] << ", ";
-    std::cout << "\n";
-    std::cout << "VALUES: \t";
-    for (int i = 0; i < c2; i++)
-        std::cout << bricks[toRotate[i]] << ", ";
-    std::cout << "\n";
+    
     switchLines(c, rotationMatrix);
-    if (clockwise) {
-        switch(rotatingWall) {
-            case LEFT:
-            case UP:
-            case BACK:
-                adTranspose(c, rotationMatrix);
-                break;
-            default:
-                transpose(c, rotationMatrix);
-                break;
-        }
-    }
-    else {
-        switch(rotatingWall) {
-            case RIGHT:
-            case BOTTOM:
-            case FRONT:
-                adTranspose(c, rotationMatrix);
-                break;
-            default:
-                transpose(c, rotationMatrix);
-                break;
-        }
-    }
+    if (clockwise && (rotatingWall == LEFT || rotatingWall == UP || rotatingWall == BACK))
+        adTranspose(c, rotationMatrix);
+    else if (!clockwise && (rotatingWall == RIGHT || rotatingWall == BOTTOM || rotatingWall == FRONT))
+        adTranspose(c, rotationMatrix);
+    else
+        transpose(c, rotationMatrix);
 
-    //if(rotatingWall == LEFT || rotatingWall == RIGHT)
-    //    adTranspose(c, rotationMatrix);
-    //switchLines(c, rotationMatrix);
-    std::cout << "MATRIX AFTER:\n";
-    for (int i = 0; i < c; i++){
-        for (int j = 0; j < c; j++)
-            std::cout << rotationMatrix[i][j] << "\t";
-        std::cout << "\n";
-    }
     int * values = new int[c3];
     for (int i = 0; i < c3; i++)
         values[i] = bricks[i]; // copy current bricks
@@ -172,10 +125,6 @@ void RubiksCube::updateIndexes() {
         bricks[toRotate[i]] = values[rotationMatrix[i / c][i % c]];
     delete[] values;
     delete[] rotationMatrix;
-    std::cout << "AFTER:\n";
-    for (int i = 0; i < c3; i++)
-        std::cout << bricks[i] << ", ";
-    std::cout << "\n";
 }
 
 void RubiksCube::runTask(int task) {
@@ -206,11 +155,8 @@ void RubiksCube::Update(const glm::mat4 &MVP, const glm::mat4 &Model, const int 
     Shader *s = shaders[shaderIndx];
     if (shapes[pickedShape]->GetMaterial() >= 0 && !materials.empty())
         BindMaterial(s, shapes[pickedShape]->GetMaterial());
-    //textures[0]->Bind(0);
+
     s->Bind();
-    //rotatingWall = BACK;
-    //degrees = 0.5f;
-    //rotateCube(bricks[0]);
     if (rotations){
         for (int i = 0; i < c2; i++)
             rotateCube(bricks[toRotate[i]]);
@@ -262,6 +208,16 @@ void RubiksCube::rotateCube(int i) {
 void RubiksCube::addTask(int task) {
     tasks.push(task);
 }
+
+void RubiksCube::zoom(float z){
+    Proj[3][3] += z;
+}
+
+void RubiksCube::WhenPicked(){
+    //tasks.push
+}
+
+
 
 RubiksCube::~RubiksCube(void) {
     delete bricks;
