@@ -18,7 +18,7 @@ void mouse_callback(GLFWwindow *window, int button, int action, int mods) {
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
 	Renderer *rndr = (Renderer *)glfwGetWindowUserPointer(window);
 	RubiksCube *scn = (RubiksCube *)rndr->GetScene();
-	scn->MyTranslate(glm::vec3(0, 0, xoffset), 0);
+	scn->zoom(xoffset * 0.1);
 }
 
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
