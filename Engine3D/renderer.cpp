@@ -29,7 +29,7 @@ void Renderer::Init(Scene* scene,  std::list<int>xViewport,  std::list<int>yView
 	MoveCamera(0, zTranslate, 10);
 	glm::ivec4 viewport;
 	glGetIntegerv(GL_VIEWPORT, &viewport[0]);
-	drawInfo.push_back(new DrawInfo(0, 0, 0, 0,   inAction | toClear | blackClear));
+	drawInfo.push_back(new DrawInfo(0, 0, 0, 0,   inAction | toClear | blackClear | depthTest));
 	buffers.push_back(new DrawBuffer());
 
 	if (xViewport.empty() && yViewport.empty())
@@ -116,8 +116,10 @@ bool Renderer::Picking(int x, int y)
 	GLint viewport[4];
 	unsigned char data[4];
 	glGetIntegerv(GL_VIEWPORT, viewport); //reading viewport parameters
-	glReadPixels(x, viewport[3] - y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
-	glReadPixels(x, viewport[3] - y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
+	int xPos = x * (viewport[2] / 840.0);
+	int yPos = y * (viewport[3] / 840.0);
+	glReadPixels(xPos, viewport[3] - yPos, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	glReadPixels(xPos, viewport[3] - yPos, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
 
 	return scn->Picking(data);
 	//return depth;
