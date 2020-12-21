@@ -88,7 +88,6 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 			for (int i = 0; i < 10; i++)
 				scn->addTask(std::rand() % 5);
 			break;
-
 		default:
 			break;
 		}

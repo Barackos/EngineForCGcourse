@@ -30,7 +30,6 @@ void RubiksCube::Init() {
     AddMaterial(texIDs, slots, 1);
     for (int i = 0; i < c3; i++) {
         AddShape(Cube, -1, TRIANGLES);
-        SetShapeShader(i, 1);
         pickedShape = i;
         SetShapeMaterial(i, 0);
         bricks[i] = i;
@@ -155,7 +154,6 @@ void RubiksCube::Update(const glm::mat4 &MVP, const glm::mat4 &Model, const int 
     Shader *s = shaders[shaderIndx];
     if (shapes[pickedShape]->GetMaterial() >= 0 && !materials.empty())
         BindMaterial(s, shapes[pickedShape]->GetMaterial());
-
     s->Bind();
     if (rotations){
         for (int i = 0; i < c2; i++)
@@ -167,20 +165,15 @@ void RubiksCube::Update(const glm::mat4 &MVP, const glm::mat4 &Model, const int 
         tasks.pop();
     }
 
-    if (shaderIndx != 0) {
-        s->SetUniformMat4f("Model", Model);
-        s->SetUniformMat4f("View", MVP);
-        s->SetUniformMat4f("Proj", Proj);
-    }
-    else
-    {
-        s->SetUniformMat4f("Model", glm::mat4(1));
-        s->SetUniformMat4f("View", glm::mat4(1));
-        s->SetUniformMat4f("Proj", Proj);
-    }
-    s->SetUniform1i("sampler1", materials[shapes[pickedShape]->GetMaterial()]->GetSlot(0));
-    if (shaderIndx != 0)
-        s->SetUniform1i("sampler", materials[shapes[pickedShape]->GetMaterial()]->GetSlot(1));
+    s->SetUniformMat4f("Model", Model);
+    s->SetUniformMat4f("View", MVP);
+    s->SetUniformMat4f("Proj", Proj);
+    if (shaderIndx == 0)    
+        s->SetUniformMat4f("Obj", shapes[pickedShape]->MakeTrans());
+    int idx = 0;
+    for(; idx < c3; idx++)
+        if(bricks[idx] == pickedShape) break;
+    s->SetUniform4f("lightColor", 1, 1, 1, (idx + 1)/255.0);
 
     s->Unbind();
 }
@@ -214,7 +207,25 @@ void RubiksCube::zoom(float z){
 }
 
 void RubiksCube::WhenPicked(){
-    //tasks.push
+    int psw = pickedShape >> 8, walls[3] = { -1, -1, -1};
+    pickedShape &= 0xFF;
+    
+    // find the appropriate wall according to formulas
+    for (int i = 0; i < c2; i++) {
+        if(pickedShape == c * i)
+            walls[0] = LEFT;
+        else if(pickedShape == c * i + c - 1)
+            walls[0] = RIGHT;
+        if(pickedShape == c2 * (i / c) + i % c + c * (c - 1))
+            walls[1] = UP;
+        else if(pickedShape == c2 * (i / c) + i % c)
+            walls[1] = BOTTOM;
+        if(pickedShape == i + (c - 1) * c2)
+            walls[2] = FRONT;
+        else if(pickedShape == i)
+            walls[2] = BACK;
+    }
+    tasks.push(walls[psw]);
 }
 
 

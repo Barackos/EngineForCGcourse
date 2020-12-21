@@ -10,5 +10,5 @@ uniform vec4 lightColor;
 
 void main()
 {
-	FragColor = vec4(lightColor.rgb * abs(normal0),lightColor.a);
+	FragColor = vec4(lightColor.rgb * abs(normal0) ,lightColor.a);
 }
