@@ -16,6 +16,7 @@ static void printMat(const glm::mat4 mat)
 Game2::Game2() : Scene()
 {
 	counter = 1;
+	
 }
 
 //Game2::Game2(float angle ,float relationWH, float near, float far) : Scene(angle,relationWH,near,far)
@@ -28,14 +29,36 @@ void Game2::Init()
 	unsigned int slots[3] = { 0 , 1, 0 };
 	
 	AddShader("../res/shaders/pickingShader");	
-	AddShader("../res/shaders/myShader");
-	AddTexture("../res/textures/pal.png", 1);
+	AddShader("../res/shaders/basicShader");
+	AddTexture("../res/textures/box0.bmp", 2);
 	//TextureDesine(840, 840);
 
 	AddMaterial(texIDs,slots, 1);
 	
-	AddShape(Plane, -1, TRIANGLES);
+	AddShape(Cube, -1, TRIANGLES);
+	AddShape(Octahedron, -1, TRIANGLES);
+	
+	AddShape(Axis, -1, LINES);
+	
+	AddShapeCopy(0, -1, TRIANGLES);
+
 	SetShapeShader(0, 1);
+	SetShapeShader(1, 1);
+	SetShapeShader(2, 1);
+	SetShapeShader(3, 1);
+
+	pickedShape = 0;
+	ShapeTransformation(zTranslate, -4);
+	pickedShape = 1;
+	ShapeTransformation(yTranslate, 4);
+	pickedShape = 2;
+	ShapeTransformation(xScale, 5);
+	ShapeTransformation(yScale, 5);
+	ShapeTransformation(zScale, 5);
+	pickedShape = 3;
+	ShapeTransformation(xTranslate, 7);
+	pickedShape = -1;
+	//SetShapeMaterial(0, 0);
 }
 
 void Game2::Update(const glm::mat4 &MVP,const glm::mat4 &Model,const int  shaderIndx)
@@ -50,19 +73,14 @@ void Game2::Update(const glm::mat4 &MVP,const glm::mat4 &Model,const int  shader
 		BindMaterial(s, shapes[pickedShape]->GetMaterial());
 	//textures[0]->Bind(0);
 	s->Bind();
-	if (shaderIndx != 1)
-	{
+	
 		s->SetUniformMat4f("MVP", MVP);
 		s->SetUniformMat4f("Normal", Model);
-	}
-	else
-	{
-		s->SetUniformMat4f("MVP", glm::mat4(1));
-		s->SetUniformMat4f("Normal", glm::mat4(1));
-	}
+	
 	s->SetUniform1i("sampler1", materials[shapes[pickedShape]->GetMaterial()]->GetSlot(0));
 	if(shaderIndx!=1)
 		s->SetUniform1i("sampler2", materials[shapes[pickedShape]->GetMaterial()]->GetSlot(1));
+	s->SetUniform4f("lightColor", r, g, b, 0);
 	s->SetUniform1ui("counter", counter);
 	s->SetUniform1f("x", x);
 	s->SetUniform1f("y", y);
@@ -74,7 +92,7 @@ void Game2::UpdatePosition(float xpos,  float ypos)
 	int viewport[4];
 	glGetIntegerv(GL_VIEWPORT, viewport);
 	x = xpos / viewport[2];
-	y = 1- ypos / viewport[3]; 
+	y =  1 - ypos / viewport[3]; 
 }
 
 void Game2::WhenRotate()
@@ -93,18 +111,20 @@ void Game2::Motion()
 {
 	if(isActive)
 	{
+		pickedShape = 3;
+		ShapeTransformation(yRotate, 0.07);
 	}
 }
 
 unsigned int Game2::TextureDesine(int width, int height)
 {
 	unsigned char* data = new unsigned char[width * height * 4];
-	for (size_t i = 0; i < width; i++)
+	for (int i = 0; i < width; i++)
 	{
-		for (size_t j = 0; j < height; j++)
+		for (int j = 0; j < height; j++)
 		{
 			data[(i * height + j) * 4] = (i + j) % 256;
-			data[(i * height + j) * 4 + 1] = (i + j * 2) % 256;
+			data[(i * height + j) * 4 + 1] =  (i + j * 2) % 256;
 			data[(i * height + j) * 4 + 2] = (i * 2 + j) % 256;
 			data[(i * height + j) * 4 + 3] = (i * 3 + j) % 256;
 		}

@@ -21,7 +21,7 @@ Scene::Scene()
 	pickedShape = -1;
 	depth = 0;
 
-	isActive = false;
+	isActive = true;
 }
 
 void Scene::AddShapeFromFile(const std::string& fileName, int parent, unsigned int mode)
@@ -109,8 +109,6 @@ void Scene::Draw(int shaderIndx, const glm::mat4& MVP, int viewportIndx, unsigne
 	pickedShape = p;
 }
 
-
-
 void Scene::ShapeTransformation(int type, float amt)
 {
 	if (glm::abs(amt) > 1e-5)
@@ -150,7 +148,16 @@ bool Scene::Picking(unsigned char data[4])
 		pickedShape = (psw << 8) | (data[3] - 1);
 		WhenPicked();
 		pickedShape = -1;
-		return true;	
+		return true;	// OUR CODE ENDS HERE
+		// TAMIRS CODE
+		if (data[0] > 0)
+		{
+			pickedShape = data[0]-1; //r 
+			return true;
+		}
+		return false;
+		//WhenPicked();	
+		// TAMIRS CODE
 }
 //return coordinates in global system for a tip of arm position is local system 
 void Scene::MouseProccessing(int button, int xrel, int yrel)
@@ -159,15 +166,20 @@ void Scene::MouseProccessing(int button, int xrel, int yrel)
 	//{
 	if (button == 1)
 	{
-
-		MyTranslate(glm::vec3(-xrel / 80.0f, 0, 0), 0);
-		MyTranslate(glm::vec3(0, yrel / 80.0f, 0), 0);
+		pickedShape = 0;
+		ShapeTransformation(xTranslate, xrel / 80.0f);
+		pickedShape = -1;
+		//MyTranslate(glm::vec3(-xrel / 80.0f, 0, 0), 0);
+		//MyTranslate(glm::vec3(0, yrel / 80.0f, 0), 0);
 		WhenTranslate();
 	}
 	else
 	{
-		MyRotate(-xrel / 2.0f, glm::vec3(0, 1, 0), 0);
-		MyRotate(-yrel / 2.0f, glm::vec3(1, 0, 0), 1);
+		pickedShape = 0;
+		ShapeTransformation(yRotate, xrel / 2.0f);
+		pickedShape = -1;
+		//MyRotate(-xrel / 2.0f, glm::vec3(0, 1, 0), 0);
+		//MyRotate(-yrel / 2.0f, glm::vec3(1, 0, 0), 1);
 		WhenRotate();
 	}
 	//}

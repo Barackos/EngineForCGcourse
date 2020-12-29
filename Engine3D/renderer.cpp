@@ -212,7 +212,9 @@ void Renderer::Resize(int width, int height)
 {
 	//not working properly
 	cameras[0]->SetProjection(cameras[0]->GetAngle(), (float)width / height);
-	glViewport(0, 0, width, height);
+	//glViewport(0, 0, width, height);
+	viewports[0].z = width;
+	viewports[0].w = height;
 	//std::cout << cameras[0]->GetRelationWH() << std::endl;
 }
 

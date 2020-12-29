@@ -14,13 +14,16 @@
 			double x2, y2;
 			glfwGetCursorPos(window, &x2, &y2);
 			if (rndr->Picking((int)x2, (int)y2))
+			{
 				rndr->UpdatePosition(x2, y2);
+				std::cout << "picked" << std::endl;
+			}
 			scn->ResetCounter();
 		}
 		else
 			scn->SetCounter();
 		//std::cout << "yes" << std::endl;
-		rndr->ClearDrawFlag(1,1);
+		//rndr->ClearDrawFlag(1,1);
 	}
 	
 	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
@@ -36,7 +39,7 @@
 	{
 		Renderer* rndr = (Renderer*)glfwGetWindowUserPointer(window);
 		Game2* scn = (Game2*)rndr->GetScene();
-		scn->UpdatePosition((float)xpos, (float)ypos);
+		
 		rndr->UpdatePosition((float)xpos,(float)ypos);
 
 			if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
@@ -45,6 +48,7 @@
 			}
 			else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 			{
+				scn->UpdatePosition((float)xpos, (float)ypos);
 				rndr->MouseProccessing(GLFW_MOUSE_BUTTON_LEFT);
 			}
 
@@ -85,7 +89,8 @@
 				//cout<< "down: "<<endl;
 				rndr->MoveCamera(0, scn->zTranslate, -0.4f);
 				break;
-
+			case GLFW_KEY_LEFT:
+				break;
 			default:
 				break;
 			}

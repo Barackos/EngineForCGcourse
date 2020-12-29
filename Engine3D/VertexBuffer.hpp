@@ -8,14 +8,16 @@
 #ifndef SRC_VERTEXBUFFER_HPP_
 #define SRC_VERTEXBUFFER_HPP_
 
-class VertexBuffer{
+class VertexBuffer {
 private:
 	unsigned int m_RendererID;
+	bool isDynamic;
 public:
-	VertexBuffer(const VertexBuffer &vb);
-	VertexBuffer(const void* data, unsigned int size);
+	VertexBuffer(const VertexBuffer& vb);
+	VertexBuffer(const void* data, unsigned int size, bool dynamic = false);
 	~VertexBuffer();
 
+	void ChageData(const void* data, unsigned int size);
 	void Bind() const;
 	void Unbind() const;
 	void copy();
