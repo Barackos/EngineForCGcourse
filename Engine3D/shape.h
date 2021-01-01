@@ -8,12 +8,15 @@ class Shape : public MovableGLM
 {
 private:
 
-	MeshConstructor* mesh;
 	unsigned int materialID;
 	int shaderID;
 	bool isCopy;
 	unsigned int mode;
 	unsigned int viewports;
+
+protected:
+
+	MeshConstructor* mesh;
 
 public:
 
@@ -34,6 +37,8 @@ public:
 	inline void SetShader(const int id) { shaderID = id; }
 
 	inline int GetShader() { return shaderID; }
+
+	inline int GetViewPorts() { return viewports; }
 
 	inline void SetMaterial(const unsigned int id) { materialID = id; }
 

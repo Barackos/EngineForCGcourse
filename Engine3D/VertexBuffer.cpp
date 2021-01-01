@@ -5,7 +5,7 @@
  *      Author: Casa
  */
 #define GLEW_STATIC
-#include <GL\glew.h>
+#include <GL/glew.h>
 #include "VertexBuffer.hpp"
 
 VertexBuffer::VertexBuffer(const void* data, unsigned int size, bool dynamic) {

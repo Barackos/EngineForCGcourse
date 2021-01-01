@@ -1,10 +1,10 @@
 #pragma once
 #include <vector>
-#include "glm\glm.hpp"
+#include "glm/glm.hpp"
 #include "VertexArray.hpp"
 #include "Mesh.h"
-//#include "build/Curves/Bezier1D.h"
-//#include "build/Curves/Bezier2D.h"
+// #include "Bezier1D.h"
+// #include "Bezier2D.h"
 
 
 class MeshConstructor
@@ -38,8 +38,9 @@ public:
 	MeshConstructor(const int type);
 	MeshConstructor(const MeshConstructor& mesh);
 	MeshConstructor(const std::string& fileName);
-	MeshConstructor::MeshConstructor(const IndexedModel& model, bool isMesh);
-	//MeshConstructor::MeshConstructor(Bezier2D* surf);
+	MeshConstructor(const IndexedModel& model, bool isMesh);
+	// MeshConstructor(Bezier1D* c);
+	// MeshConstructor(Bezier2D* surf);
 
 	void Bind() { vao.Bind(); }
 	void Unbind() { vao.Unbind(); }

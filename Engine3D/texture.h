@@ -7,6 +7,7 @@ class Texture
 {
 public:
 	Texture(const std::string& fileName,const int dim);
+	Texture(std::vector<std::string> faces);
 	Texture(int width, int height,unsigned char *data);
 	Texture(int width, int height);
 	void Bind(int slot);

@@ -73,6 +73,8 @@ protected:
 	std::vector<Material*> materials;
 
 	int pickedShape;
+	bool isPicking;
+	float xrel, yrel;
 
 	bool isActive;
 };

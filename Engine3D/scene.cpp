@@ -22,6 +22,7 @@ Scene::Scene()
 	depth = 0;
 
 	isActive = true;
+	isPicking = false;
 }
 
 void Scene::AddShapeFromFile(const std::string& fileName, int parent, unsigned int mode)
@@ -93,17 +94,21 @@ void Scene::Draw(int shaderIndx, const glm::mat4& MVP, int viewportIndx, unsigne
 		if (shapes[pickedShape]->Is2Render(viewportIndx))
 		{
 			glm::mat4 Model = Normal * shapes[pickedShape]->MakeTrans();
-
+			
+			if(pickedShape < 3) glDepthMask(GL_FALSE);
 			if (shaderIndx > 0)
 			{
 				Update(MVP, Model, shapes[pickedShape]->GetShader());
+				if(pickedShape == 0) glDepthMask(GL_FALSE);
 				shapes[pickedShape]->Draw(shaders[shapes[pickedShape]->GetShader()], false);
+				glDepthMask(GL_TRUE);
 			}
 			else
 			{ //picking
 				Update(MVP, Model, 0);
 				shapes[pickedShape]->Draw(shaders[0], true);
 			}
+			glDepthMask(GL_TRUE);
 		}
 	}
 	pickedShape = p;
@@ -142,22 +147,14 @@ void Scene::ShapeTransformation(int type, float amt)
 
 bool Scene::Picking(unsigned char data[4])
 {
-	    
-		if(data[3] == 0) return false;
-		int psw = data[0] ? 0 : data[1] ? 1 : 2;
-		pickedShape = (psw << 8) | (data[3] - 1);
-		WhenPicked();
-		pickedShape = -1;
-		return true;	// OUR CODE ENDS HERE
-		// TAMIRS CODE
-		if (data[0] > 0)
-		{
-			pickedShape = data[0]-1; //r 
-			return true;
-		}
-		return false;
-		//WhenPicked();	
-		// TAMIRS CODE
+		// if (data[3] > 0)
+		// {
+			pickedShape = data[3]-1; //r 
+			WhenPicked();
+			// isPicking = true;
+			// return true;
+		// }
+		return pickedShape != -1;
 }
 //return coordinates in global system for a tip of arm position is local system 
 void Scene::MouseProccessing(int button, int xrel, int yrel)
@@ -166,21 +163,28 @@ void Scene::MouseProccessing(int button, int xrel, int yrel)
 	//{
 	if (button == 1)
 	{
-		pickedShape = 0;
-		ShapeTransformation(xTranslate, xrel / 80.0f);
-		pickedShape = -1;
+		// pickedShape = 1;
+		// ShapeTransformation(xTranslate, xrel / 80.0f);
+		// pickedShape = -1;
 		//MyTranslate(glm::vec3(-xrel / 80.0f, 0, 0), 0);
 		//MyTranslate(glm::vec3(0, yrel / 80.0f, 0), 0);
-		WhenTranslate();
 	}
 	else
 	{
-		pickedShape = 0;
-		ShapeTransformation(yRotate, xrel / 2.0f);
-		pickedShape = -1;
+		// pickedShape = 4;
+		// ShapeTransformation(yRotate, xrel / 2.0f);
+		// pickedShape = -1;
+		if(isPicking && pickedShape > 2){ // TODO move to if's then!!!!!!!!!
+			this->xrel = -xrel;
+			this->yrel = yrel;
+			WhenPicked();
+		}
+		// TODO until here
+		if(isPicking && pickedShape > 2)
+			WhenTranslate();
 		//MyRotate(-xrel / 2.0f, glm::vec3(0, 1, 0), 0);
 		//MyRotate(-yrel / 2.0f, glm::vec3(1, 0, 0), 1);
-		WhenRotate();
+		// WhenRotate();
 	}
 	//}
 

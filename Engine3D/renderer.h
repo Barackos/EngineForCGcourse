@@ -69,6 +69,7 @@ public:
 	inline void SetDrawFlag(int infoIndx,unsigned int flag) { drawInfo[infoIndx]->SetFlags(flag); }
 	inline void ClearDrawFlag(int infoIndx, unsigned int flag) { drawInfo[infoIndx]->ClearFlags(flag); }
 	bool checkViewport(int x, int y, int viewportIndx);
+	void c(glm::mat4*a);
 	~Renderer();
 private:
 	std::vector<Camera*> cameras;

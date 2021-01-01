@@ -30,6 +30,7 @@ void Renderer::Init(Scene* scene,  std::list<int>xViewport,  std::list<int>yView
 	glm::ivec4 viewport;
 	glGetIntegerv(GL_VIEWPORT, &viewport[0]);
 	drawInfo.push_back(new DrawInfo(0, 0, 0, 0,   inAction | toClear | blackClear | depthTest));
+	drawInfo.push_back(new DrawInfo(1, 1, 0, 0,   inAction | toClear | blackClear | depthTest));
 	buffers.push_back(new DrawBuffer());
 
 	if (xViewport.empty() && yViewport.empty())
@@ -39,6 +40,8 @@ void Renderer::Init(Scene* scene,  std::list<int>xViewport,  std::list<int>yView
 	}
 	else
 	{
+		xViewport.pop_back();
+		xViewport.push_back(viewport.z / 2);
 		xViewport.push_front(viewport.x);
 		yViewport.push_front(viewport.y);
 		xViewport.push_back(viewport.z);
@@ -51,7 +54,7 @@ void Renderer::Init(Scene* scene,  std::list<int>xViewport,  std::list<int>yView
 			for (++yit; yit != yViewport.end(); ++yit)
 			{
 				viewports.push_back(glm::ivec4(*std::prev(xit), *std::prev(yit), *xit - *std::prev(xit), *yit - *std::prev(yit)));
-				drawInfo.push_back(new DrawInfo(indx, 0, 1, 0, indx < 1 | depthTest));
+				drawInfo.push_back(new DrawInfo(indx, 0, 1, 0, (indx < 1) | blackClear | depthTest));
 				indx++;
 			}
 		}
@@ -111,17 +114,28 @@ void Renderer::DrawAll()
 bool Renderer::Picking(int x, int y)
 {
 	//picking from camera 0 and using shader 0
-	ActionDraw();
-
-	GLint viewport[4];
-	unsigned char data[4];
-	glGetIntegerv(GL_VIEWPORT, viewport); //reading viewport parameters
-	int xPos = x * (viewport[2] / 840.0);
-	int yPos = y * (viewport[3] / 840.0);
-	glReadPixels(xPos, viewport[3] - yPos, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
-	glReadPixels(xPos, viewport[3] - yPos, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
-
-	return scn->Picking(data);
+	// ActionDraw();
+	for (int i = 0; i < drawInfo.size(); i++)
+	{
+		if (drawInfo[i]->flags & inAction){
+			Draw(i);
+			GLint viewport[4];
+			glGetIntegerv(GL_VIEWPORT, viewport); //reading viewport parameters
+			int xPos = x * (1680 / 840.0);
+			int yPos = y * (1550 / 840.0);
+			int bs = i == 0 ? 1 : 40, cp = 0, size = 4 * bs * bs;
+			unsigned char *data = new unsigned char[size];
+			glReadPixels(xPos, viewport[3] - yPos, bs, bs, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			glReadPixels(xPos, viewport[3] - yPos, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
+			for (int j = 0; j < size; j+=4){
+				if((data + j)[3] > 2){ cp = j; break; }
+			}
+			bool p = scn->Picking(data + cp);
+			delete[] data;
+			if(p) return true;
+		}
+	}
+	return false;
 	//return depth;
 
 }
@@ -129,6 +143,8 @@ bool Renderer::Picking(int x, int y)
 void Renderer::MouseProccessing(int button)
 {
 	scn->MouseProccessing(button, xrel, yrel);
+	// cameras[0]->MyRotate(xrel / 2.0f, glm::vec3(0, 1, 0), 0);
+	// cameras[0]->MyRotate(-yrel / 2.0f, glm::vec3(1, 0, 0), 1);
 }
 
 void Renderer::AddCamera(const glm::vec3& pos, float fov, float relationWH, float zNear, float zFar, int infoIndx)
@@ -217,6 +233,10 @@ void Renderer::Resize(int width, int height)
 	viewports[0].w = height;
 	//std::cout << cameras[0]->GetRelationWH() << std::endl;
 }
+
+void Renderer::c(glm::mat4 *a){
+	*a = cameras[0]->kaki();//[0]->GetViewProjection() * glm::inverse(cameras[0]->MakeTrans());;
+};
 
 void Renderer::MoveCamera(int cameraIndx, int type, float amt)
 {
