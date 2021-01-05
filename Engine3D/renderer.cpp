@@ -26,7 +26,7 @@ Renderer::Renderer(float angle, float relationWH, float near, float far)
 void Renderer::Init(Scene* scene,  std::list<int>xViewport,  std::list<int>yViewport)
 {
 	scn = scene;
-	MoveCamera(0, zTranslate, 10);
+	// MoveCamera(0, zTranslate, 10);
 	glm::ivec4 viewport;
 	glGetIntegerv(GL_VIEWPORT, &viewport[0]);
 	drawInfo.push_back(new DrawInfo(0, 0, 0, 0,   inAction | toClear | blackClear | depthTest));
@@ -54,7 +54,7 @@ void Renderer::Init(Scene* scene,  std::list<int>xViewport,  std::list<int>yView
 			for (++yit; yit != yViewport.end(); ++yit)
 			{
 				viewports.push_back(glm::ivec4(*std::prev(xit), *std::prev(yit), *xit - *std::prev(xit), *yit - *std::prev(yit)));
-				drawInfo.push_back(new DrawInfo(indx, 0, 1, 0, (indx < 1) | blackClear | depthTest));
+				drawInfo.push_back(new DrawInfo(indx, 0, 1, 0, (indx < 1) | blackClear | depthTest | stencilTest | blend));
 				indx++;
 			}
 		}
@@ -98,16 +98,15 @@ void Renderer::Draw(int infoIndx)
 		else
 			Clear(1, 1, 1, 1);
 	}
-	scn->Draw(info.shaderIndx, MVP, info.viewportIndx, debugMode);
+	scn->Draw(info.shaderIndx, MVP, info.viewportIndx, cameras[info.cameraIndx], debugMode);
 
 }
 
 void Renderer::DrawAll()
 {
-	for (int i =   0; i < drawInfo.size(); i++)
-	{
+	for (int i = 0; i < drawInfo.size(); i++) {
 		if (!(drawInfo[i]->flags & inAction))
-			Draw( i);
+			Draw(i);
 	}
 }
 
@@ -123,7 +122,7 @@ bool Renderer::Picking(int x, int y)
 			glGetIntegerv(GL_VIEWPORT, viewport); //reading viewport parameters
 			int xPos = x * (1680 / 840.0);
 			int yPos = y * (1550 / 840.0);
-			int bs = i == 0 ? 1 : 40, cp = 0, size = 4 * bs * bs;
+			int bs = i == 0 ? 1 : 60, cp = 0, size = 4 * bs * bs;
 			unsigned char *data = new unsigned char[size];
 			glReadPixels(xPos, viewport[3] - yPos, bs, bs, GL_RGBA, GL_UNSIGNED_BYTE, data);
 			glReadPixels(xPos, viewport[3] - yPos, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);

@@ -83,9 +83,10 @@ int Scene::AddMaterial(unsigned int texIndices[], unsigned int slots[], unsigned
 	return (materials.size() - 1);
 }
 
-void Scene::Draw(int shaderIndx, const glm::mat4& MVP, int viewportIndx, unsigned int flags) 
+void Scene::Draw(int shaderIndx, const glm::mat4& MVP, int viewportIndx, Camera *c, unsigned int flags) 
 {
 	glm::mat4 Normal = MakeTrans();
+	glm::mat4 MVPNT = c->GetViewProjection() * glm::inverse(glm::mat4(glm::mat3(c->MakeTrans())));
 
 	int p = pickedShape;
 
@@ -94,14 +95,13 @@ void Scene::Draw(int shaderIndx, const glm::mat4& MVP, int viewportIndx, unsigne
 		if (shapes[pickedShape]->Is2Render(viewportIndx))
 		{
 			glm::mat4 Model = Normal * shapes[pickedShape]->MakeTrans();
-			
 			if(pickedShape < 3) glDepthMask(GL_FALSE);
 			if (shaderIndx > 0)
 			{
-				Update(MVP, Model, shapes[pickedShape]->GetShader());
-				if(pickedShape == 0) glDepthMask(GL_FALSE);
+				Update(pickedShape == 0 ? MVPNT : MVP, Model, shapes[pickedShape]->GetShader());
+				BeforeDraw(1);
 				shapes[pickedShape]->Draw(shaders[shapes[pickedShape]->GetShader()], false);
-				glDepthMask(GL_TRUE);
+				AfterDraw(MVP);
 			}
 			else
 			{ //picking
@@ -147,47 +147,21 @@ void Scene::ShapeTransformation(int type, float amt)
 
 bool Scene::Picking(unsigned char data[4])
 {
-		// if (data[3] > 0)
-		// {
-			pickedShape = data[3]-1; //r 
-			WhenPicked();
-			// isPicking = true;
-			// return true;
-		// }
-		return pickedShape != -1;
+		pickedShape = data[3]-1; //r 
+		WhenPicked();
+		return isPicking;
 }
 //return coordinates in global system for a tip of arm position is local system 
 void Scene::MouseProccessing(int button, int xrel, int yrel)
 {
-	//if (pickedShape == -1)
-	//{
-	if (button == 1)
-	{
-		// pickedShape = 1;
-		// ShapeTransformation(xTranslate, xrel / 80.0f);
-		// pickedShape = -1;
-		//MyTranslate(glm::vec3(-xrel / 80.0f, 0, 0), 0);
-		//MyTranslate(glm::vec3(0, yrel / 80.0f, 0), 0);
-	}
-	else
-	{
-		// pickedShape = 4;
-		// ShapeTransformation(yRotate, xrel / 2.0f);
-		// pickedShape = -1;
-		if(isPicking && pickedShape > 2){ // TODO move to if's then!!!!!!!!!
-			this->xrel = -xrel;
-			this->yrel = yrel;
-			WhenPicked();
-		}
-		// TODO until here
-		if(isPicking && pickedShape > 2)
+	if(isPicking && pickedShape != -1){ 
+		this->xrel = -xrel;
+		this->yrel = yrel;
+		if(button == 1)
 			WhenTranslate();
-		//MyRotate(-xrel / 2.0f, glm::vec3(0, 1, 0), 0);
-		//MyRotate(-yrel / 2.0f, glm::vec3(1, 0, 0), 1);
-		// WhenRotate();
+		else
+			WhenRotate();
 	}
-	//}
-
 }
 
 void Scene::ZeroShapesTrans()

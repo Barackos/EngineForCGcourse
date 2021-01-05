@@ -4,6 +4,7 @@
 #include "Bezier.h"
 #include <iostream>
 
+bool up = false;
 
 	void mouse_callback(GLFWwindow* window,int button, int action, int mods)
 	{	
@@ -12,14 +13,18 @@
 		if (action == GLFW_PRESS)
 		{
 			double x2, y2;
+			up = true;
 			glfwGetCursorPos(window, &x2, &y2);
 			if (rndr->Picking((int)x2, (int)y2))
 			{
-				rndr->UpdatePosition(x2, y2);
 				scn->UpdatePosition(x2, y2);
+				rndr->UpdatePosition(x2, y2);
 				// std::cout << "picked" << std::endl;
 			}
 			//scn->ResetCounter();
+		} else {
+			if(up) scn->stopPicking();
+			up = false;
 		}
 		// else
 		// 	scn->SetCounter();
@@ -33,10 +38,11 @@
 		Bezier* scn = (Bezier*)rndr->GetScene();
 
 		//scn->MyTranslate(glm::vec3(0,0,xoffset),0);
-		rndr->MoveCamera(0, Renderer::zTranslate, xoffset);
-		glm::mat4 mat;
-		rndr->c(&mat);
-		scn->avi(mat);
+		// rndr->MoveCamera(0, Renderer::zTranslate, xoffset);
+		scn->scrollCB(xoffset);
+		// glm::mat4 mat;
+		// rndr->c(&mat);
+		// scn->avi(mat);
 	}
 	
 	void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
@@ -50,12 +56,10 @@
 			if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
 			{
 				rndr->MouseProccessing(GLFW_MOUSE_BUTTON_RIGHT);
-			} else { 
-				if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-				{
-					rndr->MouseProccessing(GLFW_MOUSE_BUTTON_LEFT);
-				} else
-					scn->stopPicking();
+			}
+			if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+			{
+				rndr->MouseProccessing(GLFW_MOUSE_BUTTON_LEFT);
 			}
 	}
 
@@ -81,25 +85,46 @@
 				glfwSetWindowShouldClose(window, GLFW_TRUE);
 				break;
 			case GLFW_KEY_SPACE:
-				if (scn->IsActive())
-					scn->Deactivate();
-				else
-					scn->Activate();
-				break;
+				scn->TextureDesine(0,0);
+				// if (scn->IsActive())
+				// 	scn->Deactivate();
+				// else
+				// 	scn->Activate();
+				// break;
 
 			case GLFW_KEY_UP:
-				rndr->MoveCamera(0, scn->yTranslate, 0.4f);
+				rndr->MoveCamera(0, scn->yRotate, 0.4f);
 				break;
 			case GLFW_KEY_DOWN:
 				//scn->shapeTransformation(scn->xGlobalRotate,-5.f);
 				//cout<< "down: "<<endl;
-				rndr->MoveCamera(0, scn->yTranslate, -0.4f);
+				rndr->MoveCamera(0, scn->yRotate, -0.4f);
 				break;
 			case GLFW_KEY_LEFT:
-				rndr->MoveCamera(0, scn->xTranslate, -0.4f);
+				rndr->MoveCamera(0, scn->xRotate, -0.4f);
 				break;
 			case GLFW_KEY_RIGHT:
+				rndr->MoveCamera(0, scn->xRotate, 0.4f);
+				break;
+			case GLFW_KEY_U:
+				rndr->MoveCamera(0, scn->yTranslate, 0.4f);
+				break;
+			case GLFW_KEY_D:
+				//scn->shapeTransformation(scn->xGlobalRotate,-5.f);
+				//cout<< "down: "<<endl;
+				rndr->MoveCamera(0, scn->yTranslate, -0.4f);
+				break;
+			case GLFW_KEY_L:
+				rndr->MoveCamera(0, scn->xTranslate, -0.4f);
+				break;
+			case GLFW_KEY_R:
 				rndr->MoveCamera(0, scn->xTranslate, 0.4f);
+				break;
+			case GLFW_KEY_B:
+				rndr->MoveCamera(0, scn->zTranslate, 0.4f);
+				break;
+			case GLFW_KEY_F:
+				rndr->MoveCamera(0, scn->zTranslate, -0.4f);
 				break;
 			case GLFW_KEY_P:
 				scn->TextureDesine(0,0);

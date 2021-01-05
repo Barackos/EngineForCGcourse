@@ -36,7 +36,9 @@ public:
 	virtual void WhenPicked() {};
 	virtual void Motion() {};
 	virtual void Reset() {};
-	virtual void Draw(int shaderIndx, const glm::mat4& MVP, int viewportIndx, unsigned int flags);
+	virtual void BeforeDraw(int ref) {};
+	virtual void AfterDraw(const glm::mat4& MVP) {};
+	virtual void Draw(int shaderIndx, const glm::mat4& MVP, int viewportIndx, Camera *c, unsigned int flags);
 	virtual ~Scene(void);
 
 	void ShapeTransformation(int type, float amt);

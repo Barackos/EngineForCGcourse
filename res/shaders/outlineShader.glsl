@@ -8,11 +8,11 @@ in vec3 color0;
 in vec3 position0;
 
 uniform vec4 lightColor;
-uniform sampler2D sampler;
+uniform sampler2D outline;
 uniform vec4 lightDirection;
 
 
 void main()
 {
-	FragColor = vec4((texture(sampler, texCoord0) * vec4(color0,1.0)).xyz, lightColor.a); //you must have gl_FragColor
+	FragColor = vec4(0.04, 0.7, 0.26, 1.0); //you must have gl_FragColor
 }
