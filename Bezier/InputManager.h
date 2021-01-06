@@ -4,7 +4,7 @@
 #include "Bezier.h"
 #include <iostream>
 
-bool up = false;
+// bool up = false;
 
 	void mouse_callback(GLFWwindow* window,int button, int action, int mods)
 	{	
@@ -12,19 +12,18 @@ bool up = false;
 		Bezier* scn = (Bezier*)rndr->GetScene();
 		if (action == GLFW_PRESS)
 		{
+				std::cout << "PICKED" << std::endl;
 			double x2, y2;
-			up = true;
 			glfwGetCursorPos(window, &x2, &y2);
 			if (rndr->Picking((int)x2, (int)y2))
 			{
-				scn->UpdatePosition(x2, y2);
+				// scn->UpdatePosition(x2, y2);
 				rndr->UpdatePosition(x2, y2);
-				// std::cout << "picked" << std::endl;
 			}
 			//scn->ResetCounter();
-		} else {
-			if(up) scn->stopPicking();
-			up = false;
+		} else if (action == GLFW_RELEASE){
+			scn->stopPicking();
+			std::cout << "STOPPED" << std::endl;
 		}
 		// else
 		// 	scn->SetCounter();
@@ -36,13 +35,7 @@ bool up = false;
 	{
 		Renderer* rndr = (Renderer*)glfwGetWindowUserPointer(window);
 		Bezier* scn = (Bezier*)rndr->GetScene();
-
-		//scn->MyTranslate(glm::vec3(0,0,xoffset),0);
-		// rndr->MoveCamera(0, Renderer::zTranslate, xoffset);
 		scn->scrollCB(xoffset);
-		// glm::mat4 mat;
-		// rndr->c(&mat);
-		// scn->avi(mat);
 	}
 	
 	void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)

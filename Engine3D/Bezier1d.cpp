@@ -71,7 +71,7 @@ static std::vector<glm::vec2> GrahamsScan(glm::mat4x2 points){
     glm::vec2 fp;
     float minY = 2.0; // TODO maybe bigger
     std::vector<glm::vec2> rp = std::vector<glm::vec2>{points[0], points[1], points[2], points[3]};
-    std::cout << "GRAHAMS SCAN\n";
+    // std::cout << "GRAHAMS SCAN\n";
     for(int i = 0; i < 4; i ++){
         if(rp[i].y < minY){
             fp = rp[i];
@@ -136,24 +136,24 @@ bool Bezier1D::isInConvexHull(int segNum, glm::vec2 point) {
     glm::vec2 direction;
     std::cout << "CHECKING IF IN CH OF " << segNum << "\n";
     if(areOnSameLine(points, direction)){
-        std::cout << "POINTS ARE ON THE SAME LINE\n";
-        std::cout << "DIRECTION : [" << direction.x << ", " << direction.y << "]\n";
+        // std::cout << "POINTS ARE ON THE SAME LINE\n";
+        // std::cout << "DIRECTION : [" << direction.x << ", " << direction.y << "]\n";
         glm::vec2 vp = 0.125f * glm::rotate(direction, 90.0f); // 1 is all the seen quarter
         ch = std::vector<glm::vec2>{ points[0] - vp, points[0] + vp, 
             points[3] + vp, points[3] - vp,}; // RECTANGLE CONVEX HULL
         // std::cout << "CREATED RECTANGLE CH\n";
     } else
         ch = GrahamsScan(points);
-    std::cout << "CH IS :\n";
-    for(glm::vec2 c : ch)
-        std::cout << "[" << c.x << ", " << c.y << "]\n";
+    // std::cout << "CH IS :\n";
+    // for(glm::vec2 c : ch)
+    //     std::cout << "[" << c.x << ", " << c.y << "]\n";
     ch.push_back(ch.front()); // copy start vertex to form a circle
     // detect if point is within ch
     int intersections = 0;
     for(int i = 0; i < ch.size() - 1; i++)
         if(isIntersectingFromRight(point, ch[i], ch[i + 1]))
             intersections++;
-    std::cout << "INTERSECTIONS " << intersections << "\n";
+    // std::cout << "INTERSECTIONS " << intersections << "\n";
     return intersections % 2;
 }
 

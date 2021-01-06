@@ -14,5 +14,5 @@ uniform vec4 lightDirection;
 
 void main()
 {
-	FragColor = vec4(0.04, 0.7, 0.26, 1.0); //you must have gl_FragColor
+	FragColor = vec4(0.04, 0.7, 0.26, 0.5); //you must have gl_FragColor
 }

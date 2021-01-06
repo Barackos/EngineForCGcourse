@@ -30,6 +30,7 @@ public:
 
 	void UpdatePosition( float xpos, float ypos);
 private:
+	enum pickingState { NO_PICKING, PICKING_SHAPES, CREATING_RECTANGLE, PICKING_CONTROL_POINT, PICKING_SEGMENT };
 	glm::mat4 v;
 	unsigned int counter;
 	unsigned int tmp;
@@ -37,10 +38,11 @@ private:
 	int segment;
 	bool continuity;
 	float x, y, xabs, yabs;
-	glm::ivec2 r0, r1;
+	glm::vec2 r0, r1;
 	Bezier1D* bezier;
 	std::vector<int> cp;
 	std::vector<int> rShapes;
+	void AddNewShape(int type, int parent, unsigned int mode);
 	void addControlPoint(int i, int j);
 	void redrawControlPoints();
 	void MoveCP(int cPoint, glm::vec4 sp, glm::vec3 delta);

@@ -14,6 +14,13 @@ static void printMat(const glm::mat4 mat)
 	}
 }
 
+void Bezier::AddNewShape(int type, int parent, unsigned int mode){
+	Shape *plane = shapes.back();
+	shapes.pop_back();
+	AddShape(type, parent, mode);
+	shapes.push_back(plane);
+}
+
 Bezier::Bezier() : Scene()
 {
 	bezier = 0;
@@ -21,8 +28,8 @@ Bezier::Bezier() : Scene()
 	v = glm::mat4(1);
 	cp = std::vector<int>();
 	continuity = false;
-	r0 = glm::vec4(-1.0, 0, 0, 0);
-	r1 = glm::vec4(0, 0, 0, 0);
+	r0 = glm::ivec2(-1, 0);
+	r1 = glm::ivec2(0, 0);
 	rShapes = std::vector<int>();
 }
 
@@ -34,7 +41,6 @@ void Bezier::Init()
 {		
 	unsigned int texIDs[3] = { 0 , 1, 2};
 	unsigned int slots[3] = { 0 , 1, 2 };
-	isActive = false; // TODO REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 	AddShader("../res/shaders/pickingShader");	
 	AddShader("../res/shaders/basicShader");
 	AddShader("../res/shaders/basicShader2");
@@ -59,6 +65,7 @@ void Bezier::Init()
 	shapes[1]->AddViewport(1);
 	shapes[1]->RemoveViewport(0);
 	shapes.push_back(bezier);
+
 	//TODO REMOVE
 	AddShape(Cube, -1, TRIANGLES);
 	AddShape(Octahedron, -1, TRIANGLES);
@@ -70,11 +77,23 @@ void Bezier::Init()
 	for(int i = 3; i < shapes.size(); i++)
 		shapes[i]->MyTranslate(glm::vec3(0,0,-10.0f), 0);
 	//TODO REMOVE UNTIL HERE
+	AddShape(Plane, -1, TRIANGLES);
+	SetShapeShader(shapes.size() - 1, 4);
+	shapes[shapes.size() - 1]->MyTranslate(glm::vec3(0,0,-1.0f), 0);
+	// TODO KEEP THE PLANE IN THE END OF SHAPES!!!!!!!!!!!!!@@@@@@@@@@@@@@@@@@@@@@@
 	startPosition(3);
 }
 
 void Bezier::BeforeDraw(int ref){
-	if(std::find(rShapes.begin(), rShapes.end(), pickedShape) != rShapes.end()){
+	if(pickedShape == shapes.size() - 1){
+		if(isPicking && r0.x != -1 && rShapes.empty()){
+			glm::vec2 start = (1680 / 840.0f) * glm::vec2(glm::min(r0.x, r1.x), glm::min(r0.y, r1.y));
+			glm::vec2 end = (1550 / 840.0f) * glm::vec2(glm::max(r0.x, r1.x), glm::max(r0.y, r1.y));
+			glScissorIndexed(0, start.x, start.y, end.x - start.x, end.y - start.y);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		} else
+			glScissorIndexed(0, 0, 0, 0, 0);
+	} else if(std::find(rShapes.begin(), rShapes.end(), pickedShape) != rShapes.end()){
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 		glStencilFunc(GL_ALWAYS, ref, 0xFF); 
 		glStencilMask(0xFF); 
@@ -82,7 +101,10 @@ void Bezier::BeforeDraw(int ref){
 }
 
 void Bezier::AfterDraw(const glm::mat4& MVP){
-	if(std::find(rShapes.begin(), rShapes.end(), pickedShape) != rShapes.end()){
+	if(pickedShape == shapes.size() - 1){
+		glScissorIndexed(0, 0, 0, 1680, 1550);
+		glBlendFunc(GL_ONE, GL_ZERO);
+	} else if(std::find(rShapes.begin(), rShapes.end(), pickedShape) != rShapes.end()){
 		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 		glStencilMask(0x00); 
 		glDisable(GL_DEPTH_TEST); // TODO maybe change to glDepthMask
@@ -95,10 +117,13 @@ void Bezier::AfterDraw(const glm::mat4& MVP){
 }
 
 void Bezier::Draw(int shaderIndx, const glm::mat4& MVP, int viewportIndx, Camera *c, unsigned int flags){
+	int viewport[4];
+	glGetIntegerv(GL_VIEWPORT, viewport);
 	for(int s : rShapes){
 		pickedShape = s;
 		BeforeDraw(0);
 	}
+
 	// glClearStencil(0);
 	// glClear(GL_STENCIL_BUFFER_BIT);
 	Scene::Draw(shaderIndx, MVP, viewportIndx, c, flags);
@@ -115,22 +140,11 @@ void Bezier::Update(const glm::mat4 &MVP,const glm::mat4 &Model,const int  shade
 	//textures[0]->Bind(0);
 	s->Bind();
 
-	// if(shaderIndx != 2){
-		s->SetUniformMat4f("View", MVP);
-		s->SetUniformMat4f("Model", shaderIndx == 3 ? glm::mat4(glm::mat3(Model)) : Model);
-		// s->SetUniformMat4f("avi", v);
-	// }else{
-	// 	glm::mat4 a = glm::mat4(MVP);
-	// 	a[3][0] = 0;
-	// 	a[3][1] = 0;
-	// 	a[3][2] = 0;
-	// 	s->SetUniformMat4f("View", a);
-	// 	// s->SetUniformMat4f("Normal", glm::mat4(1));
-	// }
+	s->SetUniformMat4f("View", MVP);
+	s->SetUniformMat4f("Model", shaderIndx == 3 ? glm::mat4(glm::mat3(Model)) : Model);
+
 	s->SetUniform1i("sampler", materials[shapes[pickedShape]->GetMaterial()]->GetSlot(pickedShape == 2 ? 1: 0));
 	s->SetUniform1i("skybox", materials[shapes[pickedShape]->GetMaterial()]->GetSlot(2));
-	// if(shaderIndx!=1)
-	// 	s->SetUniform1i("sampler2", materials[shapes[pickedShape]->GetMaterial()]->GetSlot(1));
 	if (shaderIndx == 0){
         s->SetUniformMat4f("Obj", shapes[pickedShape]->MakeTrans());
 	}
@@ -152,8 +166,8 @@ void Bezier::UpdatePosition(float xpos,  float ypos)
 }
 
 void Bezier::addControlPoint(int i, int j){
-	AddShape(Octahedron, -1, TRIANGLES);
-	int cpShape = shapes.size() - 1;
+	AddNewShape(Octahedron, -1, TRIANGLES);
+	int cpShape = shapes.size() - 2; // since plane is the last
 	cp.push_back(cpShape);
 	glm::vec4 point = bezier->GetControlPoint(i, j);
 	shapes[cpShape]->MyTranslate(glm::vec3(point.x,point.y,0), 0);
@@ -194,8 +208,10 @@ void Bezier::startPosition(int segNum){
 
 void Bezier::WhenPicked(){
 	if(isPicking){ // picking extra action
-		if(r0.x != -1.0 && pickedShape == -1){ // draw rectangle
-			// glScissor(r0.x​, r0.y​, GLsizei width​, GLsizei height​);
+		if(r0.x != -1 && pickedShape == -1){ // draw rectangle
+			r1.x += xrel;
+			if(r1.x > 420) r1.x = 420;
+			r1.y += yrel; 
 		}
 	} else { // set picking
 		isPicking = true;
@@ -215,20 +231,21 @@ void Bezier::WhenPicked(){
 		// segment = 0;
 		// return;
 		if(pickedShape == -1 && x < 0.5){
-			if(r0.x == -1.0){ 
+			if(r0.x == -1){ 
 				std::cout << "Creating Square\n";
 				r0.x = xabs; 
 				r0.y = yabs; 
+				r1.x = r0.x;
+				r1.y = r0.y;
 			} else{ 
 				std::cout << "Clearing Square\n";
-				r0.x = -1.0;
 				pickedShape = -1;
 				rShapes.clear(); 
 				isPicking = false; 
 			}
 			return;
 		}
-		if(pickedShape < 3 || pickedShape >= shapes.size()) { // check if 3d area shape
+		if(pickedShape < 3 || pickedShape >= shapes.size() - 2) { // check if 3d area shape
 			pickedShape = -1;
 			isPicking = false;
 		}
@@ -250,6 +267,8 @@ void Bezier::SelectShapesByRectangle() {
 	glm::vec2 start = (1680 / 840.0f) * glm::vec2(glm::min(r0.x, r1.x), glm::min(r0.y, r1.y));
 	glm::vec2 end = (1550 / 840.0f) * glm::vec2(glm::max(r0.x, r1.x), glm::max(r0.y, r1.y));
 	int sizeX = end.x - start.x, sizeY = end.y - start.y;
+	std::cout << sizeX << "AND" << sizeY << "\n";
+	if(sizeX <= 0) return;
 	unsigned char *data = new unsigned char[sizeX * 4];
 	// std::cout << "POSITION: " << start.x << ", " << start.y << "\n";
 	// std::cout << "END: " << end.x << ", " << end.y << "\n";
@@ -281,10 +300,15 @@ void Bezier::SelectShapesByRectangle() {
 void Bezier::stopPicking(){ 
 	controlPoint = -1;
 	segment = -1;
-	if(r0.x != -1.0 && isPicking && pickedShape == -1){
+	if(r0.x != -1 && isPicking && pickedShape == -1){
 		r1.x = x < 0.5 ? xabs: 420.0;
 		r1.y = yabs;
-		SelectShapesByRectangle();
+		std::cout << r0.x << ", " << r0.y << "\n";
+		std::cout << r1.x << ", " << r1.y << "\n";
+		if(r0 != r1)
+			SelectShapesByRectangle();
+		if(rShapes.empty())
+			r0.x = -1;
 	}
 	isPicking = false;
 }

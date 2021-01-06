@@ -54,7 +54,7 @@ void Renderer::Init(Scene* scene,  std::list<int>xViewport,  std::list<int>yView
 			for (++yit; yit != yViewport.end(); ++yit)
 			{
 				viewports.push_back(glm::ivec4(*std::prev(xit), *std::prev(yit), *xit - *std::prev(xit), *yit - *std::prev(yit)));
-				drawInfo.push_back(new DrawInfo(indx, 0, 1, 0, (indx < 1) | blackClear | depthTest | stencilTest | blend));
+				drawInfo.push_back(new DrawInfo(indx, 0, 1, 0, (indx < 1) | blackClear | depthTest | scissorTest | stencilTest | blend));
 				indx++;
 			}
 		}
@@ -127,7 +127,7 @@ bool Renderer::Picking(int x, int y)
 			glReadPixels(xPos, viewport[3] - yPos, bs, bs, GL_RGBA, GL_UNSIGNED_BYTE, data);
 			glReadPixels(xPos, viewport[3] - yPos, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
 			for (int j = 0; j < size; j+=4){
-				if((data + j)[3] > 2){ cp = j; break; }
+				if((data + j)[3] > 3){ cp = j; break; }
 			}
 			bool p = scn->Picking(data + cp);
 			delete[] data;

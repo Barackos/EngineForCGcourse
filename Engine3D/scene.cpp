@@ -23,6 +23,7 @@ Scene::Scene()
 
 	isActive = true;
 	isPicking = false;
+	pickingState = 0; // no picking
 }
 
 void Scene::AddShapeFromFile(const std::string& fileName, int parent, unsigned int mode)
@@ -103,7 +104,7 @@ void Scene::Draw(int shaderIndx, const glm::mat4& MVP, int viewportIndx, Camera 
 				shapes[pickedShape]->Draw(shaders[shapes[pickedShape]->GetShader()], false);
 				AfterDraw(MVP);
 			}
-			else
+			else if(pickedShape > 2 && pickedShape != shapes.size() - 1)
 			{ //picking
 				Update(MVP, Model, 0);
 				shapes[pickedShape]->Draw(shaders[0], true);
@@ -148,19 +149,23 @@ void Scene::ShapeTransformation(int type, float amt)
 bool Scene::Picking(unsigned char data[4])
 {
 		pickedShape = data[3]-1; //r 
+		std::cout << pickedShape << "\n";
 		WhenPicked();
 		return isPicking;
 }
 //return coordinates in global system for a tip of arm position is local system 
 void Scene::MouseProccessing(int button, int xrel, int yrel)
 {
-	if(isPicking && pickedShape != -1){ 
-		this->xrel = -xrel;
-		this->yrel = yrel;
-		if(button == 1)
-			WhenTranslate();
-		else
-			WhenRotate();
+	this->xrel = -xrel;
+	this->yrel = yrel;
+	if(isPicking){
+		if(pickedShape != -1){ 
+			if(button == 1)
+				WhenTranslate();
+			else
+				WhenRotate();
+		} else
+			WhenPicked();
 	}
 }
 

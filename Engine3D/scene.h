@@ -76,6 +76,7 @@ protected:
 
 	int pickedShape;
 	bool isPicking;
+	int pickingState;
 	float xrel, yrel;
 
 	bool isActive;
