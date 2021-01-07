@@ -28,9 +28,10 @@ Bezier::Bezier() : Scene()
 	v = glm::mat4(1);
 	cp = std::vector<int>();
 	continuity = false;
-	r0 = glm::ivec2(-1, 0);
-	r1 = glm::ivec2(0, 0);
+	r0 = glm::vec2(-1, 0);
+	r1 = glm::vec2(0, 0);
 	rShapes = std::vector<int>();
+	fillRshapes = false;
 }
 
 //Bezier::Bezier(float angle ,float relationWH, float near, float far) : Scene(angle,relationWH,near,far)
@@ -86,9 +87,10 @@ void Bezier::Init()
 
 void Bezier::BeforeDraw(int ref){
 	if(pickedShape == shapes.size() - 1){
-		if(isPicking && r0.x != -1 && rShapes.empty()){
-			glm::vec2 start = (1680 / 840.0f) * glm::vec2(glm::min(r0.x, r1.x), glm::min(r0.y, r1.y));
-			glm::vec2 end = (1550 / 840.0f) * glm::vec2(glm::max(r0.x, r1.x), glm::max(r0.y, r1.y));
+		if(pickingState == CREATING_RECTANGLE){
+			glm::vec2 wvct = glm::vec2(1680 / 840.0f, 1550 / 840.0f);
+			glm::vec2 start = wvct * 840.0f * glm::vec2(glm::min(r0.x, r1.x), glm::min(r0.y, r1.y));
+			glm::vec2 end = wvct * 840.0f * glm::vec2(glm::max(r0.x, r1.x), glm::max(r0.y, r1.y));
 			glScissorIndexed(0, start.x, start.y, end.x - start.x, end.y - start.y);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		} else
@@ -127,6 +129,10 @@ void Bezier::Draw(int shaderIndx, const glm::mat4& MVP, int viewportIndx, Camera
 	// glClearStencil(0);
 	// glClear(GL_STENCIL_BUFFER_BIT);
 	Scene::Draw(shaderIndx, MVP, viewportIndx, c, flags);
+	if(fillRshapes){
+		SelectShapesByRectangle();
+		fillRshapes = false;
+	}
 }
 
 void Bezier::Update(const glm::mat4 &MVP,const glm::mat4 &Model,const int  shaderIndx)
@@ -159,8 +165,8 @@ void Bezier::UpdatePosition(float xpos,  float ypos)
 {
 	int viewport[4];
 	glGetIntegerv(GL_VIEWPORT, viewport);
-	x = xpos / viewport[2];
-	y = 1 - ypos / 840.0f;//viewport[3];
+	x = xpos / viewport[2]; // 840 as window
+	y = 1 - ypos / 840.0f;
 	xabs = xpos;
 	yabs = ypos;
 }
@@ -207,47 +213,32 @@ void Bezier::startPosition(int segNum){
 }
 
 void Bezier::WhenPicked(){
-	if(isPicking){ // picking extra action
-		if(r0.x != -1 && pickedShape == -1){ // draw rectangle
-			r1.x += xrel;
-			if(r1.x > 420) r1.x = 420;
-			r1.y += yrel; 
-		}
-	} else { // set picking
-		isPicking = true;
-		for(int i = 0; i < cp.size(); i++)
-			if(cp[i] == pickedShape){
-				controlPoint = i;
-				return;
-			}
-		// check convex hull
-		for(int i = 0; i < bezier->GetSegmentsNum(); i++)
-			if(bezier->isInConvexHull(i, glm::vec2(x * 4 - 3, y * 2 - 1))) {
-				segment = i;
-				pickedShape = 0;
-				return;
-			}
-		// pickedShape = 0;
-		// segment = 0;
-		// return;
-		if(pickedShape == -1 && x < 0.5){
-			if(r0.x == -1){ 
-				std::cout << "Creating Square\n";
-				r0.x = xabs; 
-				r0.y = yabs; 
+	if(x < 0.5){ // 3d area
+		if(pickedShape != -1){
+			if(rShapes.empty() || std::find(rShapes.begin(), rShapes.end(), pickedShape) != rShapes.end())
+				pickingState = PICKING_SHAPES;
+		} else {
+			if(rShapes.empty()){ // start creating rectangle
+				r0.x = x;
+				r0.y = y;
 				r1.x = r0.x;
 				r1.y = r0.y;
-			} else{ 
-				std::cout << "Clearing Square\n";
-				pickedShape = -1;
-				rShapes.clear(); 
-				isPicking = false; 
+				pickingState = CREATING_RECTANGLE;
+			} else { // clear rectangle
+				rShapes.clear();
 			}
-			return;
 		}
-		if(pickedShape < 3 || pickedShape >= shapes.size() - 2) { // check if 3d area shape
-			pickedShape = -1;
-			isPicking = false;
+	} else { // 2d area
+		std::vector<int>::iterator i = std::find(cp.begin(), cp.end(), pickedShape);
+		if(i != cp.end()){ // looking for control point
+			controlPoint = i - cp.begin();
+			pickingState = PICKING_CONTROL_POINT;
+		} else { // looking for segment
+			for(int i = 0; i < bezier->GetSegmentsNum(); i++)
+				if(bezier->isInConvexHull(i, glm::vec2(x * 4 - 3, y * 2 - 1))) {
+					segment = i;
+					pickingState = PICKING_SEGMENT;
+				}
 		}
 	}
 }
@@ -264,16 +255,16 @@ void Bezier::checkRectangleEdge(int x, int y, int size, bool isX, int vpy){
 void Bezier::SelectShapesByRectangle() {
 	GLint viewport[4];
 	glGetIntegerv(GL_VIEWPORT, viewport);
-	glm::vec2 start = (1680 / 840.0f) * glm::vec2(glm::min(r0.x, r1.x), glm::min(r0.y, r1.y));
-	glm::vec2 end = (1550 / 840.0f) * glm::vec2(glm::max(r0.x, r1.x), glm::max(r0.y, r1.y));
+	glm::vec2 wvct = glm::vec2(1680 / 840.0f, 1550 / 840.0f);
+	glm::vec2 start = wvct * 840.0f * glm::vec2(glm::min(r0.x, r1.x), glm::min(r0.y, r1.y));
+	glm::vec2 end = wvct * 840.0f * glm::vec2(glm::max(r0.x, r1.x), glm::max(r0.y, r1.y));
 	int sizeX = end.x - start.x, sizeY = end.y - start.y;
-	std::cout << sizeX << "AND" << sizeY << "\n";
+	std::cout << "POSITION: " << start.x << ", " << start.y << "\n";
+	std::cout << "END: " << end.x << ", " << end.y << "\n";
+	// std::cout << "Center Shape Position: " << 0.25 * viewport[2] << ", " << 0.5 * viewport[3] << "\n";
+	std::cout << "SIZE: " << sizeX << ", " << sizeY << "\n";
 	if(sizeX <= 0) return;
 	unsigned char *data = new unsigned char[sizeX * 4];
-	// std::cout << "POSITION: " << start.x << ", " << start.y << "\n";
-	// std::cout << "END: " << end.x << ", " << end.y << "\n";
-	// std::cout << "Center Shape Position: " << 0.25 * viewport[2] << ", " << 0.5 * viewport[3] << "\n";
-	// std::cout << "SIZE: " << sizeX << ", " << sizeY << "\n";
 	for(int i = 0; i < sizeY; i++){
 		// glReadPixels(0.25 * viewport[2], viewport[3] - (0.5 * viewport[3]) - i, sizeX, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		glReadPixels(start.x, viewport[3] - start.y - i, sizeX, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
@@ -291,26 +282,17 @@ void Bezier::SelectShapesByRectangle() {
 	checkRectangleEdge(start.x, end.y + 1, sizeX, true, viewport[3]);
 	checkRectangleEdge(start.x - 1, start.y, sizeY, false, viewport[3]);
 	checkRectangleEdge(end.x + 1, start.y, sizeY, false, viewport[3]);
+}
 
-	// for(int s : rShapes)
-	// 	std::cout << s << ", ";
-	// std::cout << "\n";
+void Bezier::updateRectangle(){
+	r1.x = x < 0.5 ? x : 0.5;
+	r1.y = y;
 }
 
 void Bezier::stopPicking(){ 
-	controlPoint = -1;
-	segment = -1;
-	if(r0.x != -1 && isPicking && pickedShape == -1){
-		r1.x = x < 0.5 ? xabs: 420.0;
-		r1.y = yabs;
-		std::cout << r0.x << ", " << r0.y << "\n";
-		std::cout << r1.x << ", " << r1.y << "\n";
-		if(r0 != r1)
-			SelectShapesByRectangle();
-		if(rShapes.empty())
-			r0.x = -1;
-	}
-	isPicking = false;
+	if(pickingState == CREATING_RECTANGLE && r1 != r0)
+		fillRshapes = true;
+	pickingState = NO_PICKING;
 }
 
 void Bezier::RotateObj(int obj, int axisPoint, int dir){
@@ -330,11 +312,11 @@ void Bezier::RotateCP(int cPoint, int axisPoint, int dir) {
 
 void Bezier::RotateControlPoint(int cPoint, int centerPoint){
 	glm::vec4 delta = glm::vec4(shapes[cp[cPoint]]->MakeTrans()[3]);
-	RotateCP(cPoint, centerPoint, 1); // around control point
+	RotateCP(cPoint, centerPoint, -1); // around control point
 	glm::vec2 pd = glm::vec2(delta);
 	delta = shapes[cp[cPoint]]->MakeTrans()[3] - delta;
 	if(pd.y + delta.y < 0 || pd.y + delta.y > 1 || pd.x + delta.x < -1 || pd.x + delta.x > 1)
-		RotateCP(cPoint, centerPoint, -1);
+		RotateCP(cPoint, centerPoint, 1);
 	else{
 		bezier->CurveUpdate(cPoint, delta.x, delta.y);
 		RotateCP(cPoint, cPoint, -1); // around itself
@@ -355,37 +337,48 @@ void Bezier::AlignPrevPathControlPoint(int cPoint){
 
 void Bezier::WhenRotate()
 {
-	if(controlPoint != -1){
-		glm::vec3 delta;
-		switch(controlPoint % 3){
-			case 0:
-				if(controlPoint != 0)
-					AlignPrevPathControlPoint(controlPoint);
-					stopPicking();
-				break;
-			case 1:
-				RotateControlPoint(controlPoint, controlPoint - 1);
-				if(continuity && controlPoint / 3 != 0)
-					RotateControlPoint(controlPoint - 2, controlPoint - 1);
-				break;
-			case 2:
-				RotateControlPoint(controlPoint, controlPoint + 1);
-				if(continuity && controlPoint / 3 < bezier->GetSegmentsNum() - 1)
-					RotateControlPoint(controlPoint + 2, controlPoint + 1);
-				break;
+	if(x < 0.5){
+		switch (pickingState){
+		case PICKING_SHAPES:
+			if(rShapes.empty())
+				RotateObj(pickedShape, pickedShape, 1);
+			else
+				for(int s : rShapes)
+					RotateObj(s, s, 1);
+			break;
+		case CREATING_RECTANGLE:
+			updateRectangle();
+			break;
 		}
-	} else if(segment != -1){
-		if(bezier->GetSegmentsNum() < 6){
-			bezier->SplitSegment(segment, 0.5);
-			redrawControlPoints();
+	} else {
+		switch (pickingState){
+		case PICKING_CONTROL_POINT:
+			switch(controlPoint % 3){
+				case 0:
+					if(controlPoint != 0)
+						AlignPrevPathControlPoint(controlPoint);
+						// stopPicking();
+					break;
+				case 1:
+					RotateControlPoint(controlPoint, controlPoint - 1);
+					if(continuity && controlPoint / 3 != 0)
+						RotateControlPoint(controlPoint - 2, controlPoint - 1);
+					break;
+				case 2:
+					RotateControlPoint(controlPoint, controlPoint + 1);
+					if(continuity && controlPoint / 3 < bezier->GetSegmentsNum() - 1)
+						RotateControlPoint(controlPoint + 2, controlPoint + 1);
+					break;
+			}
+			break;
+		case PICKING_SEGMENT:
+			if(bezier->GetSegmentsNum() < 6){
+				bezier->SplitSegment(segment, 0.5);
+				redrawControlPoints();
+			}
+			stopPicking();
+			break;
 		}
-		stopPicking();
-	} else { //3d area
-		if(rShapes.empty())
-			RotateObj(pickedShape, pickedShape, 1);
-		else
-			for(int s : rShapes)
-				RotateObj(s, s, 1);
 	}
 }
 
@@ -418,37 +411,48 @@ void Bezier::MoveControlPointContinuity(int cPoint){
 
 void Bezier::WhenTranslate()
 {
-	if(controlPoint != -1){ //2d area
-		if(continuity && (controlPoint % 3 == 1 || controlPoint % 3 == 2))
-			MoveControlPointContinuity(controlPoint);
-		else
-			MoveControlPoint(controlPoint);
-
-		if(controlPoint % 3 == 0){
-			if(controlPoint != 0) MoveControlPoint(controlPoint - 1);
-			if(controlPoint != bezier->GetSegmentsNum() * 3)
-				MoveControlPoint(controlPoint + 1);
+	if(x < 0.5){
+		switch (pickingState){
+		case PICKING_SHAPES:
+			if(rShapes.empty())
+				shapes[pickedShape]->MyTranslate(glm::vec3(xrel / 80.0f, yrel / 80.0f, 0), 0);
+			else
+				for(int s : rShapes)
+					shapes[s]->MyTranslate(glm::vec3(xrel / 80.0f, yrel / 80.0f, 0), 0);
+			break;
+		case CREATING_RECTANGLE:
+			updateRectangle();
+			break;
 		}
-	} else if(segment != -1){ // inside convex hull
-		if(segment > 0)
-			MoveControlPointContinuity(segment * 3 - 1);
-		if(segment < bezier->GetSegmentsNum() - 1)
-			MoveControlPointContinuity(segment * 3 + 4);
-		for(int i = 0; i < 4; i++)
-			MoveControlPoint(segment * 3 + i);
+	} else {
+		switch (pickingState){
+		case PICKING_CONTROL_POINT:
+			if(continuity && (controlPoint % 3 == 1 || controlPoint % 3 == 2))
+				MoveControlPointContinuity(controlPoint);
+			else
+				MoveControlPoint(controlPoint);
 
-	} else { // 3d area
-		if(rShapes.empty())
-			shapes[pickedShape]->MyTranslate(glm::vec3(xrel / 80.0f, yrel / 80.0f, 0), 0);
-		else
-			for(int s : rShapes)
-				shapes[s]->MyTranslate(glm::vec3(xrel / 80.0f, yrel / 80.0f, 0), 0);
+			if(controlPoint % 3 == 0){
+				if(controlPoint != 0) MoveControlPoint(controlPoint - 1);
+				if(controlPoint != bezier->GetSegmentsNum() * 3)
+					MoveControlPoint(controlPoint + 1);
+			}
+			break;
+		case PICKING_SEGMENT:
+			if(segment > 0)
+				MoveControlPointContinuity(segment * 3 - 1);
+			if(segment < bezier->GetSegmentsNum() - 1)
+				MoveControlPointContinuity(segment * 3 + 4);
+			for(int i = 0; i < 4; i++)
+				MoveControlPoint(segment * 3 + i);
+			break;
+		}
 	}
 }
 
 void Bezier::scrollCB(float amt){
 	if(x < 0.5){
-		if(isPicking){
+		if(pickingState == PICKING_SHAPES){
 			if(rShapes.empty())
 				shapes[pickedShape]->MyTranslate(glm::vec3(0, 0, amt), 0);
 			else
@@ -474,10 +478,10 @@ void Bezier::Motion()
 {
 	if(isActive)
 	{
-		pickedShape = 4;
-		// shapes[0]->MyTranslate(glm::vec3(0,0,0.01), 0);
-		// ShapeTransformation(yRotate, 0.07);
-		pickedShape = 0;
+		// pickedShape = 4;
+		// // shapes[0]->MyTranslate(glm::vec3(0,0,0.01), 0);
+		// // ShapeTransformation(yRotate, 0.07);
+		// pickedShape = 0;
 		// shapes[0]->MyScale(glm::vec3(1.001, 1.001, 1.001));
 		// shapes[2]->MyTranslate(glm::vec3(0,0,0.001), 0);
 		// bezier->CurveUpdate(1, 0.00, 0.001);

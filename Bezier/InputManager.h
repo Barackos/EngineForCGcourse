@@ -12,7 +12,6 @@
 		Bezier* scn = (Bezier*)rndr->GetScene();
 		if (action == GLFW_PRESS)
 		{
-				std::cout << "PICKED" << std::endl;
 			double x2, y2;
 			glfwGetCursorPos(window, &x2, &y2);
 			if (rndr->Picking((int)x2, (int)y2))
@@ -23,7 +22,6 @@
 			//scn->ResetCounter();
 		} else if (action == GLFW_RELEASE){
 			scn->stopPicking();
-			std::cout << "STOPPED" << std::endl;
 		}
 		// else
 		// 	scn->SetCounter();

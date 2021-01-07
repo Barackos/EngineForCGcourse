@@ -149,24 +149,24 @@ void Scene::ShapeTransformation(int type, float amt)
 bool Scene::Picking(unsigned char data[4])
 {
 		pickedShape = data[3]-1; //r 
-		std::cout << pickedShape << "\n";
+		// std::cout << pickedShape << "\n";
 		WhenPicked();
-		return isPicking;
+		return pickingState != 0;
 }
 //return coordinates in global system for a tip of arm position is local system 
 void Scene::MouseProccessing(int button, int xrel, int yrel)
 {
 	this->xrel = -xrel;
 	this->yrel = yrel;
-	if(isPicking){
-		if(pickedShape != -1){ 
-			if(button == 1)
-				WhenTranslate();
-			else
-				WhenRotate();
-		} else
-			WhenPicked();
-	}
+	// if(isPicking){
+	// 	if(pickedShape != -1){ 
+	if(button == 1)
+		WhenTranslate();
+	else
+		WhenRotate();
+	// 	} else
+	// 		WhenPicked();
+	// }
 }
 
 void Scene::ZeroShapesTrans()

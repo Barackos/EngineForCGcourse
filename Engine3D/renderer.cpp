@@ -122,7 +122,7 @@ bool Renderer::Picking(int x, int y)
 			glGetIntegerv(GL_VIEWPORT, viewport); //reading viewport parameters
 			int xPos = x * (1680 / 840.0);
 			int yPos = y * (1550 / 840.0);
-			int bs = i == 0 ? 1 : 60, cp = 0, size = 4 * bs * bs;
+			int bs = i == 0 ? 1 : 40, cp = 0, size = 4 * bs * bs;
 			unsigned char *data = new unsigned char[size];
 			glReadPixels(xPos, viewport[3] - yPos, bs, bs, GL_RGBA, GL_UNSIGNED_BYTE, data);
 			glReadPixels(xPos, viewport[3] - yPos, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
