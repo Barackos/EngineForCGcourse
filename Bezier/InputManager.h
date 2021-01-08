@@ -76,13 +76,12 @@
 				glfwSetWindowShouldClose(window, GLFW_TRUE);
 				break;
 			case GLFW_KEY_SPACE:
-				scn->TextureDesine(0,0);
 				// if (scn->IsActive())
 				// 	scn->Deactivate();
 				// else
 				// 	scn->Activate();
-				// break;
-
+				scn->createShape();
+				break;
 			case GLFW_KEY_UP:
 				rndr->MoveCamera(0, scn->yRotate, 0.4f);
 				break;
@@ -116,17 +115,6 @@
 				break;
 			case GLFW_KEY_F:
 				rndr->MoveCamera(0, scn->zTranslate, -0.4f);
-				break;
-			case GLFW_KEY_P:
-				scn->TextureDesine(0,0);
-				rndr->c(&mat);
-				std::cout<<" CAMERA:"<<std::endl;
-				for (int i = 0; i < 4; i++)
-				{
-					for (int j = 0; j < 4; j++)
-						std::cout<< mat[j][i]<<" ";
-					std::cout<<std::endl;
-				}
 				break;
 			case GLFW_KEY_2:
 			case GLFW_KEY_3:

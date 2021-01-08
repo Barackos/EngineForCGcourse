@@ -1,6 +1,7 @@
 #pragma once
 #include "scene.h"
 #include "Bezier1D.h"
+#include "Bezier2D.h"
 
 class Bezier : public Scene
 {
@@ -17,13 +18,12 @@ public:
 	void AfterDraw(const glm::mat4& MVP);
 	void Draw(int shaderIndx, const glm::mat4& MVP, int viewportIndx, Camera *c, unsigned int flags);
 	void Motion();
-	void avi(glm::mat4& a);
 	void stopPicking();
 	void startPosition(int segNum);
 	void scrollCB(float amt);
+	void createShape();
 	inline void setContinuity() { continuity = !continuity; }
 	
-	unsigned int TextureDesine(int width, int height);
 	~Bezier(void);
 	inline void ResetCounter() { tmp = counter; counter = 0; }
 	inline void SetCounter() { counter = tmp; }
@@ -37,12 +37,12 @@ private:
 	int controlPoint;
 	int segment;
 	bool continuity, fillRshapes;
-	float x, y, xabs, yabs;
+	float x, y;
 	glm::vec2 r0, r1;
 	Bezier1D* bezier;
 	std::vector<int> cp;
 	std::vector<int> rShapes;
-	void AddNewShape(int type, int parent, unsigned int mode);
+	void AddNewShape(Shape *s, int parent);
 	void updateRectangle();
 	void addControlPoint(int i, int j);
 	void redrawControlPoints();

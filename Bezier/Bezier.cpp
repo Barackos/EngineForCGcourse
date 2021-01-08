@@ -14,10 +14,13 @@ static void printMat(const glm::mat4 mat)
 	}
 }
 
-void Bezier::AddNewShape(int type, int parent, unsigned int mode){
+void Bezier::AddNewShape(Shape *s, int parent){
 	Shape *plane = shapes.back();
 	shapes.pop_back();
-	AddShape(type, parent, mode);
+	chainParents.pop_back();
+	chainParents.push_back(parent);
+	chainParents.push_back(-1); // plane parent
+	shapes.push_back(s);
 	shapes.push_back(plane);
 }
 
@@ -81,8 +84,7 @@ void Bezier::Init()
 	AddShape(Plane, -1, TRIANGLES);
 	SetShapeShader(shapes.size() - 1, 4);
 	shapes[shapes.size() - 1]->MyTranslate(glm::vec3(0,0,-1.0f), 0);
-	// TODO KEEP THE PLANE IN THE END OF SHAPES!!!!!!!!!!!!!@@@@@@@@@@@@@@@@@@@@@@@
-	startPosition(3);
+	startPosition(3); // uses AddNewShape so need to be called after the plane is added
 }
 
 void Bezier::BeforeDraw(int ref){
@@ -109,12 +111,10 @@ void Bezier::AfterDraw(const glm::mat4& MVP){
 	} else if(std::find(rShapes.begin(), rShapes.end(), pickedShape) != rShapes.end()){
 		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 		glStencilMask(0x00); 
-		glDisable(GL_DEPTH_TEST); // TODO maybe change to glDepthMask
 		shapes[pickedShape]->MyScale(glm::vec3(1.06,1.06,1.06));
 		Update(MVP, MakeTrans() * shapes[pickedShape]->MakeTrans(), 4);
 		shapes[pickedShape]->Draw(shaders[4], false);
 		shapes[pickedShape]->MyScale(glm::vec3(1/1.06,1/1.06,1/1.06));
-		glEnable(GL_DEPTH_TEST);  
 	}
 }
 
@@ -167,12 +167,10 @@ void Bezier::UpdatePosition(float xpos,  float ypos)
 	glGetIntegerv(GL_VIEWPORT, viewport);
 	x = xpos / viewport[2]; // 840 as window
 	y = 1 - ypos / 840.0f;
-	xabs = xpos;
-	yabs = ypos;
 }
 
 void Bezier::addControlPoint(int i, int j){
-	AddNewShape(Octahedron, -1, TRIANGLES);
+	AddNewShape(new Shape(Octahedron, TRIANGLES), -1);
 	int cpShape = shapes.size() - 2; // since plane is the last
 	cp.push_back(cpShape);
 	glm::vec4 point = bezier->GetControlPoint(i, j);
@@ -259,14 +257,12 @@ void Bezier::SelectShapesByRectangle() {
 	glm::vec2 start = wvct * 840.0f * glm::vec2(glm::min(r0.x, r1.x), glm::min(r0.y, r1.y));
 	glm::vec2 end = wvct * 840.0f * glm::vec2(glm::max(r0.x, r1.x), glm::max(r0.y, r1.y));
 	int sizeX = end.x - start.x, sizeY = end.y - start.y;
-	std::cout << "POSITION: " << start.x << ", " << start.y << "\n";
-	std::cout << "END: " << end.x << ", " << end.y << "\n";
-	// std::cout << "Center Shape Position: " << 0.25 * viewport[2] << ", " << 0.5 * viewport[3] << "\n";
-	std::cout << "SIZE: " << sizeX << ", " << sizeY << "\n";
+	// std::cout << "POSITION: " << start.x << ", " << start.y << "\n";
+	// std::cout << "END: " << end.x << ", " << end.y << "\n";
+	// std::cout << "SIZE: " << sizeX << ", " << sizeY << "\n";
 	if(sizeX <= 0) return;
 	unsigned char *data = new unsigned char[sizeX * 4];
 	for(int i = 0; i < sizeY; i++){
-		// glReadPixels(0.25 * viewport[2], viewport[3] - (0.5 * viewport[3]) - i, sizeX, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		glReadPixels(start.x, viewport[3] - start.y - i, sizeX, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		for (int j = 0; j < sizeX * 4; j += 4){
 			if((data + j)[3] > 2 && (data + j)[3] < shapes.size()
@@ -459,7 +455,7 @@ void Bezier::scrollCB(float amt){
 				for(int s : rShapes)
 					shapes[s]->MyTranslate(glm::vec3(0, 0, amt), 0);
 		}
-	}else{
+	} else {
 		xrel = 0;
 		yrel = amt;
 		int i;
@@ -470,32 +466,16 @@ void Bezier::scrollCB(float amt){
 	}
 }
 
-void Bezier::avi(glm::mat4& a){
-	v = a;
+void Bezier::createShape(){
+	Bezier2D *s = new Bezier2D(bezier, 4, 50, 50, TRIANGLE_STRIP);
+	AddNewShape(s, -1);
 }
 
 void Bezier::Motion()
 {
 	if(isActive)
 	{
-		// pickedShape = 4;
-		// // shapes[0]->MyTranslate(glm::vec3(0,0,0.01), 0);
-		// // ShapeTransformation(yRotate, 0.07);
-		// pickedShape = 0;
-		// shapes[0]->MyScale(glm::vec3(1.001, 1.001, 1.001));
-		// shapes[2]->MyTranslate(glm::vec3(0,0,0.001), 0);
-		// bezier->CurveUpdate(1, 0.00, 0.001);
-		// bezier->CurveUpdate(2, 0.00, 0.001);
-	}
-}
-
-unsigned int Bezier::TextureDesine(int width, int height)
-{
-	// printMat(shapes[0]->MakeTrans());
-	// std::cout << "C: " << counter << "\n";
-	if(bezier->GetSegmentsNum() < 6){
-		bezier->SplitSegment(0, 0.5);
-		redrawControlPoints();
+		
 	}
 }
 

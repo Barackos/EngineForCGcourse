@@ -233,10 +233,6 @@ void Renderer::Resize(int width, int height)
 	//std::cout << cameras[0]->GetRelationWH() << std::endl;
 }
 
-void Renderer::c(glm::mat4 *a){
-	*a = cameras[0]->kaki();//[0]->GetViewProjection() * glm::inverse(cameras[0]->MakeTrans());;
-};
-
 void Renderer::MoveCamera(int cameraIndx, int type, float amt)
 {
 	switch (type)

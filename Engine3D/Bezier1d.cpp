@@ -71,7 +71,6 @@ static std::vector<glm::vec2> GrahamsScan(glm::mat4x2 points){
     glm::vec2 fp;
     float minY = 2.0; // TODO maybe bigger
     std::vector<glm::vec2> rp = std::vector<glm::vec2>{points[0], points[1], points[2], points[3]};
-    // std::cout << "GRAHAMS SCAN\n";
     for(int i = 0; i < 4; i ++){
         if(rp[i].y < minY){
             fp = rp[i];
@@ -106,7 +105,7 @@ static bool isIntersectingFromRight(glm::vec2 point, glm::vec2 e0, glm::vec2 e1)
         return false; // if point is not within the edge's y range there's no intersection
     // std::cout << "CHECKING INTERSECTION: WITHIN Y RANGE\n";
     if(e0 == e1) return e0.x >= point.x; // edge case when edge is a point
-    glm::vec2 d = glm::normalize(e0.y > e1.y ? e0 - e1 : e1 - e0);
+    glm::vec2 d = glm::normalize(f - s);
     float t = (point.y - s.y) / d.y; // s.y + t * d.y = point.y
     // std::cout << "CHECKING INTERSECTION: T IS " << t << ", X IS " << s.x + t * d.x << "\n";
     return s.x + t * d.x >= point.x; // >= means the edge is in right of the point
@@ -134,7 +133,7 @@ bool Bezier1D::isInConvexHull(int segNum, glm::vec2 point) {
     std::vector<glm::vec2> ch;
     glm::mat4x2 points = glm::mat4x2(segments[segNum]);
     glm::vec2 direction;
-    std::cout << "CHECKING IF IN CH OF " << segNum << "\n";
+    // std::cout << "CHECKING IF IN CH OF " << segNum << "\n";
     if(areOnSameLine(points, direction)){
         // std::cout << "POINTS ARE ON THE SAME LINE\n";
         // std::cout << "DIRECTION : [" << direction.x << ", " << direction.y << "]\n";
@@ -197,7 +196,7 @@ void Bezier1D::MoveControlPoint(int segment, int indx, float dx, float dy, bool 
         }
     }
 
-    if(preserveC1); // TODO @@@@@@@@@@@@@@@@@@@
+    // if(preserveC1); // TODO @@@@@@@@@@@@@@@@@@@
 }  //change the position of one control point. when preserveC1 is true it may affect other  control points 
 
 void Bezier1D::CurveUpdate(int pointIndx, float dx, float dy, bool preserveC1){
