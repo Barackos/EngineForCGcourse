@@ -71,15 +71,15 @@ void Bezier::Init()
 	shapes.push_back(bezier);
 
 	//TODO REMOVE
-	AddShape(Cube, -1, TRIANGLES);
-	AddShape(Octahedron, -1, TRIANGLES);
-	AddShapeCopy(1, -1, TRIANGLES);
+	// AddShape(Cube, -1, TRIANGLES);
+	// AddShape(Octahedron, -1, TRIANGLES);
+	// AddShapeCopy(1, -1, TRIANGLES);
 
-	SetShapeShader(3, 2);
-	SetShapeShader(4, 2);
-	SetShapeShader(5, 2);
-	for(int i = 3; i < shapes.size(); i++)
-		shapes[i]->MyTranslate(glm::vec3(0,0,-10.0f), 0);
+	// SetShapeShader(3, 2);
+	// SetShapeShader(4, 2);
+	// SetShapeShader(5, 2);
+	// for(int i = 3; i < shapes.size(); i++)
+	// 	shapes[i]->MyTranslate(glm::vec3(0,0,-10.0f), 0);
 	//TODO REMOVE UNTIL HERE
 	AddShape(Plane, -1, TRIANGLES);
 	SetShapeShader(shapes.size() - 1, 4);
@@ -294,15 +294,24 @@ void Bezier::stopPicking(){
 void Bezier::RotateObj(int obj, int axisPoint, int dir){
 	glm::vec4 cpt = shapes[axisPoint]->MakeTrans()[3];
 	shapes[obj]->MyTranslate(-glm::vec3(cpt), 0);
-	shapes[obj]->MyRotate(dir * yrel / 2.0f, glm::vec3(0,1,0), 1);
-	shapes[obj]->MyRotate(dir * xrel / 2.0f, glm::vec3(1,0,0), 1);
+	shapes[obj]->MyRotate(dir * yrel / 2.0f, glm::vec3(1,0,0), 1);
+	shapes[obj]->MyRotate(dir * xrel / 2.0f, glm::vec3(0,1,0), 1);
 	shapes[obj]->MyTranslate(glm::vec3(cpt), 0);
 }
 
 void Bezier::RotateCP(int cPoint, int axisPoint, int dir) {
 	glm::vec4 cpt = shapes[cp[axisPoint]]->MakeTrans()[3];
 	shapes[cp[cPoint]]->MyTranslate(-glm::vec3(cpt), 0);
-	shapes[cp[cPoint]]->MyRotate(dir * xrel / 2.0f, glm::vec3(0,0,1), 1);
+	// float amt = Bezier1D::angleBetweenX(glm::vec2(xrel , -yrel ));
+	// glm::vec3 a = glm::vec3(x * 2 - 1, y * 2 - 1, 0) - glm::vec3(cpt);
+	// glm::vec3 b = glm::vec3(a.x + (xrel / 840.0f), a.y + (-yrel / 840.0f), a.z);
+	// std::cout << a.x << " " << a.y << " " << a.z << "\n";
+	// if(a == glm::vec3(cpt)) 
+	// 	amt = 0;
+	// else
+	// 	amt = glm::acos(glm::dot(glm::normalize(a), glm::normalize(b)));
+	// amt *= glm::cross(a, b)[2] > 0 ? -1 : 1;
+	shapes[cp[cPoint]]->MyRotate(dir * yrel / 2.0f, glm::vec3(0,0,1), 1);
 	shapes[cp[cPoint]]->MyTranslate(glm::vec3(cpt), 0);
 }
 
@@ -337,10 +346,10 @@ void Bezier::WhenRotate()
 		switch (pickingState){
 		case PICKING_SHAPES:
 			if(rShapes.empty())
-				RotateObj(pickedShape, pickedShape, 1);
+				RotateObj(pickedShape, pickedShape, -1);
 			else
 				for(int s : rShapes)
-					RotateObj(s, s, 1);
+					RotateObj(s, s, -1);
 			break;
 		case CREATING_RECTANGLE:
 			updateRectangle();
@@ -466,8 +475,15 @@ void Bezier::scrollCB(float amt){
 	}
 }
 
+void Bezier::movePlane(int type, float amt){
+	pickedShape = shapes.size() - 1;
+	ShapeTransformation(type, amt);
+}
+
 void Bezier::createShape(){
-	Bezier2D *s = new Bezier2D(bezier, 4, 50, 50, TRIANGLE_STRIP);
+	Bezier2D *s = new Bezier2D(bezier, 4, 50, 50, TRIANGLES);
+	s->SetShader(2);
+	s->MyTranslate(glm::vec3(0,0,-10.0f), 0);
 	AddNewShape(s, -1);
 }
 
@@ -475,7 +491,7 @@ void Bezier::Motion()
 {
 	if(isActive)
 	{
-		
+
 	}
 }
 

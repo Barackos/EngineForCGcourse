@@ -84,37 +84,47 @@
 				break;
 			case GLFW_KEY_UP:
 				rndr->MoveCamera(0, scn->yRotate, 0.4f);
+				scn->movePlane(scn->yRotate, 0.4f);
 				break;
 			case GLFW_KEY_DOWN:
 				//scn->shapeTransformation(scn->xGlobalRotate,-5.f);
 				//cout<< "down: "<<endl;
 				rndr->MoveCamera(0, scn->yRotate, -0.4f);
+				scn->movePlane(scn->yRotate, -0.4f);
 				break;
 			case GLFW_KEY_LEFT:
 				rndr->MoveCamera(0, scn->xRotate, -0.4f);
+				scn->movePlane(scn->xRotate, -0.4f);
 				break;
 			case GLFW_KEY_RIGHT:
 				rndr->MoveCamera(0, scn->xRotate, 0.4f);
+				scn->movePlane(scn->xRotate, 0.4f);
 				break;
 			case GLFW_KEY_U:
 				rndr->MoveCamera(0, scn->yTranslate, 0.4f);
+				scn->movePlane(scn->yTranslate, 0.4f);
 				break;
 			case GLFW_KEY_D:
 				//scn->shapeTransformation(scn->xGlobalRotate,-5.f);
 				//cout<< "down: "<<endl;
 				rndr->MoveCamera(0, scn->yTranslate, -0.4f);
+				scn->movePlane(scn->yTranslate, -0.4f);
 				break;
 			case GLFW_KEY_L:
 				rndr->MoveCamera(0, scn->xTranslate, -0.4f);
+				scn->movePlane(scn->xTranslate, -0.4f);
 				break;
 			case GLFW_KEY_R:
 				rndr->MoveCamera(0, scn->xTranslate, 0.4f);
+				scn->movePlane(scn->xTranslate, 0.4f);
 				break;
 			case GLFW_KEY_B:
 				rndr->MoveCamera(0, scn->zTranslate, 0.4f);
+				scn->movePlane(scn->zTranslate, 0.4f);
 				break;
 			case GLFW_KEY_F:
 				rndr->MoveCamera(0, scn->zTranslate, -0.4f);
+				scn->movePlane(scn->zTranslate, -0.4f);
 				break;
 			case GLFW_KEY_2:
 			case GLFW_KEY_3:

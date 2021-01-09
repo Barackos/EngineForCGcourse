@@ -21,6 +21,7 @@ public:
 	void stopPicking();
 	void startPosition(int segNum);
 	void scrollCB(float amt);
+	void movePlane(int type, float amt);
 	void createShape();
 	inline void setContinuity() { continuity = !continuity; }
 	

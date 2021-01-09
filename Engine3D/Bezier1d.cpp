@@ -56,13 +56,14 @@ glm::vec4 Bezier1D::GetControlPoint(int segment, int indx) const{
 } //returns a control point in the requested segment. indx will be 0,1,2,3, for p0,p1,p2,p3
 
 glm::vec4 Bezier1D::GetPointOnCurve(int segment, float t){
-    glm::mat4 MG = M * segments[segment];
+    glm::mat4 MG = M * glm::transpose(segments[segment]);
     glm::vec4 T = glm::vec4(t*t*t, t*t, t, 1);
     return T * MG;
 } //returns point on curve in the requested segment for the value of t
 
-static float angleBetweenX(glm::vec2 a, glm::vec2 origin) {
-    glm::vec2 da=glm::normalize(a-origin);
+float Bezier1D::angleBetweenX(glm::vec2 a) {
+    if(a == glm::vec2(0)) return 0;
+    glm::vec2 da=glm::normalize(a);
     glm::vec2 db=glm::vec2(1, 0);
     return glm::acos(glm::dot(da, db));
 }
@@ -80,7 +81,7 @@ static std::vector<glm::vec2> GrahamsScan(glm::mat4x2 points){
     rp.erase(std::remove(rp.begin(), rp.end(), fp), rp.end());
     std::sort(rp.begin(), rp.end(), [&fp](const glm::vec2& v, const glm::vec2& u) -> bool
     { 
-        return angleBetweenX(v, fp) < angleBetweenX(u, fp);
+        return Bezier1D::angleBetweenX(v - fp) < Bezier1D::angleBetweenX(u - fp);
     });
     rp.insert(rp.begin(), fp);
 

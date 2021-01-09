@@ -23,6 +23,8 @@ public:
 	void CurveUpdate(int pointIndx, float dx, float dy, bool preserveC1 = false);  //change the line in by using ChangeLine function of MeshConstructor and MoveControlPoint 
 	bool isInConvexHull(int segNum, glm::vec2 point);
 
+	static float angleBetweenX(glm::vec2 a);
+
 	inline int GetSegmentsNum() const { return segments.size(); }
 	~Bezier1D(void);
 };
