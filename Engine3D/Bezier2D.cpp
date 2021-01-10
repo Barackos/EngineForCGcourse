@@ -28,10 +28,6 @@ void Bezier2D::CalcControlPoints(const Bezier1D* c){
         p2 = glm::rotateZ(c->GetControlPoint(i, 2), -90.0f);
         p3 = glm::rotateZ(c->GetControlPoint(i, 3), -90.0f); // all points come with z = 0
         for(int j = 0; j < 4; j++){
-            // std::cout << "CP " << i*16 + j * 4 << ": [" << p0.x << "\t" << p0.y << "\t" << p0.z << "]\n";
-            // std::cout << "CP " << i*16 + j * 4 + 1 << ": [" << p1.x << "\t" << p1.y << "\t" << p1.z << "]\n";
-            // std::cout << "CP " << i*16 + j * 4 + 2 << ": [" << p2.x << "\t" << p2.y << "\t" << p2.z << "]\n";
-            // std::cout << "CP " << i*16 + j * 4 + 3 << ": [" << p3.x << "\t" << p3.y << "\t" << p3.z << "]\n";
             controlPoints.insert(controlPoints.end(), { p0, p1, p2, p3 });
             p0 = glm::rotateY(p0, rotAngle);
             p1 = glm::rotateY(p1, rotAngle);
@@ -39,10 +35,6 @@ void Bezier2D::CalcControlPoints(const Bezier1D* c){
             p3 = glm::rotateY(p3, rotAngle);
         }
     }
-    // for each segment - u should be the segment's control points,
-    // v should form a quater of circle with it's control points.
-    // in general, v should form 1/circularSubdivision of a circle.
-    // when 4, we get 4 surfaces from each segment of the 1D curve.
 }  // calculates control points cubic Bezier manifold.
 
 static void rotateSurface(std::vector<glm::vec4> &surface, float angle){
@@ -61,7 +53,6 @@ glm::vec4 Bezier2D::calcBezierPoint(glm::mat4 curve, float t){
 }
 
 glm::mat4 Bezier2D::CalcNurb(float p, bool isT, const std::vector<glm::vec4> subSurf){
-    // calc the mid curve. first go on s/t to find place, then calc the nurb.
     glm::mat4 curve = glm::mat4();
     for(int i = 0; i < 4; i++){
         glm::mat4 c = isT ? glm::mat4(subSurf[i * 4], subSurf[i * 4 + 1], subSurf[i * 4 + 2], subSurf[i * 4 +3])
@@ -83,16 +74,16 @@ std::vector<glm::vec4> Bezier2D::getSubSurf(int segmentS, int segmentT){
 glm::vec2 Bezier2D::getTexCoords(int segmentS, int segmentT, float s, float t){
     float sizeSg = (float)(segmentS) / circularSubdivision;
     float sizeTg = (float)(segmentT) / subNum;
-    // std::cout << sizeSg + s * 1 / circularSubdivision << ", " << sizeTg + t * 1 / subNum << "\n";
     return glm::vec2(sizeSg + s / circularSubdivision, sizeTg + t / subNum);
 }
 
-Vertex* Bezier2D::GetPointOnSurface(int segmentS, int segmentT, float s, float t){
+Vertex* Bezier2D::GetPointOnSurface(int segmentS, int segmentT, int s, int t){
+    float sf = (float)s / resS, tf = (float)t / resT;
     std::vector<glm::vec4> subSurf = getSubSurf(segmentS, segmentT);
-    glm::mat4 sCurve = CalcNurb(s, false, subSurf);
-    glm::vec3 position = glm::vec3(calcBezierPoint(sCurve, t));
-    glm::vec3 normal = CalcNormal(s, t, subSurf);
-    glm::vec2 texCoords = getTexCoords(segmentS, segmentT, s, t);
+    glm::mat4 sCurve = CalcNurb(sf, false, subSurf);
+    glm::vec3 position = glm::vec3(calcBezierPoint(sCurve, tf));
+    glm::vec3 normal = CalcNormal(sf, tf, subSurf);
+    glm::vec2 texCoords = getTexCoords(segmentS, segmentT, sf, tf);
     return new Vertex(position, texCoords, normal, glm::vec3(1, 0, 0));
 }  //returns a point on the surface in the requested segment for value of t and s
 
@@ -103,22 +94,20 @@ IndexedModel Bezier2D::GetSurface(){
     int sizeS = circularSubdivision * (resS + 1);
     int sizeT = subNum * (resT + 1);
     unsigned int counter = 0;
-    unsigned int indicesMap[sizeS][sizeT];
+    unsigned int indicesMap[sizeT][sizeS];
     for(int j = 0; j < circularSubdivision; j++) // segmentS
-        for(float s = 0; s <= 1.0; s += 1.0f / resS)
+        for(int s = 0; s <= resS; s++)
             for(int i = 0; i < subNum; i++) // segmentT  
-                for(float t = 0; t <= 1.0f; t += 1.0f / resT){
+                for(int t = 0; t <= resT; t++){
                     vertices.push_back(*GetPointOnSurface(j, i, s, t));
-                    int idxS = j * (resS + 1) + (int)(s * resS);
-                    int idxT = i * (resT + 1) + (int)(t * resT);
-                    indicesMap[idxS][idxT] = counter++;
+                    int idxS = j * (resS + 1) + s;
+                    int idxT = i * (resT + 1) + t;
+                    indicesMap[idxT][idxS] = counter++;
                     if(t == 0 && i == 0)
                         indicesT.push_back(counter - 1);
-                    else if((int)(t * resT + 1) == resT && i == subNum - 1){
+                    else if(t == resT && i == subNum - 1){
                         indicesB.push_back(counter - 1);
                     }
-                    // std::cout << "[ " << idxT << ", " << idxS << " ]\n";
-                    // std::cout << "VERTEX " << counter - 1 << ": [" << vertices.back().GetPos()->x << "\t" << vertices.back().GetPos()->y << "\t" << vertices.back().GetPos()->z << "]\n";
                 }
 
     glm::vec3 tcc = glm::vec3(0, controlPoints[0].y, 0);
@@ -126,10 +115,12 @@ IndexedModel Bezier2D::GetSurface(){
     Vertex t = Vertex(tcc, glm::vec2(0.5f, 0.5f), glm::vec3(0, 1, 0), glm::vec3(1, 0, 0));
     Vertex b = Vertex(bcc, glm::vec2(0.5f, 0.5f), glm::vec3(0, -1, 0), glm::vec3(1, 0, 0));
     vertices.insert(vertices.end(), { t, b });
-    for(int i = 0; i < indicesT.size() - 1; i++){
-        model.indices.insert(model.indices.end(), { counter, indicesT[i], indicesT[i + 1] });
-        model.indices.insert(model.indices.end(), { counter + 1, indicesB[i], indicesB[i + 1] });
-    }
+    for(int i = 0; i < indicesT.size(); i++)
+        model.indices.insert(model.indices.end(), 
+        { 
+            counter, indicesT[i], indicesT[(i + 1) % indicesT.size()],
+            counter + 1, indicesB[i], indicesB[(i + 1) % indicesB.size()]
+        });
 
     for(unsigned int i = 0; i < vertices.size(); i++) {
 		model.positions.push_back(*vertices[i].GetPos());
@@ -138,19 +129,13 @@ IndexedModel Bezier2D::GetSurface(){
 		model.texCoords.push_back(*vertices[i].GetTexCoord());
 	}
 
-    for (int i = 0; i < sizeS - 1; i++) {
-        for (int j = 0; j < sizeT - 1; j++) {
-            // model.indices.insert(model.indices.end(), { 
-            model.indices.push_back(indicesMap[i][j]);
-            model.indices.push_back(indicesMap[i][j + 1]);
-            model.indices.push_back(indicesMap[i + 1][j + 1]);
-            model.indices.push_back(indicesMap[i][j]);
-            model.indices.push_back(indicesMap[i + 1][j]);
-            model.indices.push_back(indicesMap[i + 1][j + 1]);
-            // std::cout << "[ " << indicesMap[i][j] << "\t" << indicesMap[i][j + 1]
-            //           << "\t" << indicesMap[i + 1][j + 1] << "\t" << indicesMap[i + 1][j] << "]\n";
-        }
-    }
+    for (int i = 0; i < sizeT - 1; i++)
+        for (int j = 0; j < sizeS; j++)
+            model.indices.insert(model.indices.end(), 
+            { 
+                indicesMap[i][j], indicesMap[i][(j + 1) % sizeS], indicesMap[i + 1][(j + 1) % sizeS],
+                indicesMap[i][j], indicesMap[i + 1][j], indicesMap[i + 1][(j + 1) % sizeS] 
+            });
 
 	return model;
 }	//generates a model for MeshConstructor Constructor
@@ -171,7 +156,6 @@ glm::vec3 Bezier2D::CalcNormal(float s, float t, const std::vector<glm::vec4> su
 }
 
 glm::vec3 Bezier2D::GetNormal(int segmentS, int segmentT, float s, float t){
-    // find sub surface according to segment, then call CalcNormal
     std::vector<glm::vec4> subSurf = getSubSurf(segmentS, segmentT); 
     return CalcNormal(s, t, subSurf);
 } //returns a normal of a point on the surface in the requested segment for value of t and s

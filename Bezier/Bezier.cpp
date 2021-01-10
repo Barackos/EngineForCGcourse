@@ -59,28 +59,12 @@ void Bezier::Init()
 	std::vector<std::string> faces{ "right.jpg", "left.jpg", "top.jpg", "bottom.jpg", "front.jpg", "back.jpg" };
 	textures.push_back(new Texture(faces));
 	AddMaterial(texIDs,slots, 3);
-	// if we want an outlined texture
-	// shaders[4]->Bind();
-	// BindMaterial(shaders[4], 0);
-	// shaders[4]->SetUniform1i("outline", materials[0]->GetSlot(1));
-	// shaders[4]->Unbind();
 
 	AddShape(Axis, -1, LINES);
 	shapes[1]->AddViewport(1);
 	shapes[1]->RemoveViewport(0);
 	shapes.push_back(bezier);
 
-	//TODO REMOVE
-	// AddShape(Cube, -1, TRIANGLES);
-	// AddShape(Octahedron, -1, TRIANGLES);
-	// AddShapeCopy(1, -1, TRIANGLES);
-
-	// SetShapeShader(3, 2);
-	// SetShapeShader(4, 2);
-	// SetShapeShader(5, 2);
-	// for(int i = 3; i < shapes.size(); i++)
-	// 	shapes[i]->MyTranslate(glm::vec3(0,0,-10.0f), 0);
-	//TODO REMOVE UNTIL HERE
 	AddShape(Plane, -1, TRIANGLES);
 	SetShapeShader(shapes.size() - 1, 4);
 	shapes[shapes.size() - 1]->MyTranslate(glm::vec3(0,0,-1.0f), 0);
@@ -125,7 +109,6 @@ void Bezier::Draw(int shaderIndx, const glm::mat4& MVP, int viewportIndx, Camera
 		pickedShape = s;
 		BeforeDraw(0);
 	}
-
 	// glClearStencil(0);
 	// glClear(GL_STENCIL_BUFFER_BIT);
 	Scene::Draw(shaderIndx, MVP, viewportIndx, c, flags);
@@ -138,26 +121,16 @@ void Bezier::Draw(int shaderIndx, const glm::mat4& MVP, int viewportIndx, Camera
 void Bezier::Update(const glm::mat4 &MVP,const glm::mat4 &Model,const int  shaderIndx)
 {	
 	Shader *s = shaders[shaderIndx];
-	int r = ((pickedShape+1) & 0x000000FF) >>  0;
-	// int g = ((pickedShape+1) & 0x0000FF00) >>  8;
-	// int b = ((pickedShape+1) & 0x00FF0000) >> 16;
+	int r = (pickedShape+1) & 0xFF;
 	if (shapes[pickedShape]->GetMaterial() >= 0 && !materials.empty())
 		BindMaterial(s, shapes[pickedShape]->GetMaterial());
-	//textures[0]->Bind(0);
 	s->Bind();
-
 	s->SetUniformMat4f("View", MVP);
 	s->SetUniformMat4f("Model", shaderIndx == 3 ? glm::mat4(glm::mat3(Model)) : Model);
-
 	s->SetUniform1i("sampler", materials[shapes[pickedShape]->GetMaterial()]->GetSlot(pickedShape == 2 ? 1: 0));
 	s->SetUniform1i("skybox", materials[shapes[pickedShape]->GetMaterial()]->GetSlot(2));
-	if (shaderIndx == 0){
-        s->SetUniformMat4f("Obj", shapes[pickedShape]->MakeTrans());
-	}
-	s->SetUniform4f("lightColor", r, 1, 1, r / 255.0);
-	// s->SetUniform1ui("counter", counter);
-	// s->SetUniform1f("x", x);
-	// s->SetUniform1f("y", y);
+	s->SetUniformMat4f("Obj", shapes[pickedShape]->MakeTrans());
+	s->SetUniform4f("lightColor", r, 1, 1, r / 255.0f);
 	s->Unbind();
 }
 
@@ -201,6 +174,16 @@ void Bezier::startPosition(int segNum){
 	if(bezier) delete bezier;;
 	bezier = new Bezier1D(segNum, 50, LINE_STRIP, 1);
 	shapes[2] = bezier;
+	// bezier->CurveUpdate(0, -0.9 - bezier->GetControlPoint(0, 0).x, 0);
+	// bezier->CurveUpdate(1, -0.6 - bezier->GetControlPoint(0, 1).x, 0.2);
+	// bezier->CurveUpdate(2, -0.6 - bezier->GetControlPoint(0, 2).x, 0.7);
+	// bezier->CurveUpdate(3, -0.2 - bezier->GetControlPoint(0, 3).x, 0.2);
+	// bezier->CurveUpdate(4, 0.2 - bezier->GetControlPoint(1, 1).x, 0.7);
+	// bezier->CurveUpdate(5, 0.4 - bezier->GetControlPoint(1, 2).x, 0.3);
+	// bezier->CurveUpdate(6, 0.9 - bezier->GetControlPoint(1, 3).x, 0.71);
+	// bezier->CurveUpdate(7, 0.91 - bezier->GetControlPoint(2, 1).x, 0.61);
+	// bezier->CurveUpdate(8, 0.88 - bezier->GetControlPoint(2, 2).x, 0.4);
+	// bezier->CurveUpdate(9, 0.9 - bezier->GetControlPoint(2, 3).x, 0);
 	bezier->CurveUpdate(1, -0.6666 - bezier->GetControlPoint(0, 1).x, 0.37267799625);
 	bezier->CurveUpdate(2, -0.3333 - bezier->GetControlPoint(0, 2).x, 0.47140452079);
 	for(int i = 3; i <= (segNum - 1) * 3; i++)
@@ -302,15 +285,6 @@ void Bezier::RotateObj(int obj, int axisPoint, int dir){
 void Bezier::RotateCP(int cPoint, int axisPoint, int dir) {
 	glm::vec4 cpt = shapes[cp[axisPoint]]->MakeTrans()[3];
 	shapes[cp[cPoint]]->MyTranslate(-glm::vec3(cpt), 0);
-	// float amt = Bezier1D::angleBetweenX(glm::vec2(xrel , -yrel ));
-	// glm::vec3 a = glm::vec3(x * 2 - 1, y * 2 - 1, 0) - glm::vec3(cpt);
-	// glm::vec3 b = glm::vec3(a.x + (xrel / 840.0f), a.y + (-yrel / 840.0f), a.z);
-	// std::cout << a.x << " " << a.y << " " << a.z << "\n";
-	// if(a == glm::vec3(cpt)) 
-	// 	amt = 0;
-	// else
-	// 	amt = glm::acos(glm::dot(glm::normalize(a), glm::normalize(b)));
-	// amt *= glm::cross(a, b)[2] > 0 ? -1 : 1;
 	shapes[cp[cPoint]]->MyRotate(dir * yrel / 2.0f, glm::vec3(0,0,1), 1);
 	shapes[cp[cPoint]]->MyTranslate(glm::vec3(cpt), 0);
 }
@@ -362,7 +336,6 @@ void Bezier::WhenRotate()
 				case 0:
 					if(controlPoint != 0)
 						AlignPrevPathControlPoint(controlPoint);
-						// stopPicking();
 					break;
 				case 1:
 					RotateControlPoint(controlPoint, controlPoint - 1);
@@ -491,7 +464,7 @@ void Bezier::Motion()
 {
 	if(isActive)
 	{
-
+	
 	}
 }
 

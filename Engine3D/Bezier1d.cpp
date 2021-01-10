@@ -70,7 +70,7 @@ float Bezier1D::angleBetweenX(glm::vec2 a) {
 
 static std::vector<glm::vec2> GrahamsScan(glm::mat4x2 points){
     glm::vec2 fp;
-    float minY = 2.0; // TODO maybe bigger
+    float minY = 2.0;
     std::vector<glm::vec2> rp = std::vector<glm::vec2>{points[0], points[1], points[2], points[3]};
     for(int i = 0; i < 4; i ++){
         if(rp[i].y < minY){
