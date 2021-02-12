@@ -56,7 +56,7 @@ void Bezier::Init()
 	AddShape(Cube, -1, TRIANGLES);
 	SetShapeShader(0, 3);
 	shapes[0]->MyScale(glm::vec3(4,4,4));
-	std::vector<std::string> faces{ "right.jpg", "left.jpg", "top.jpg", "bottom.jpg", "front.jpg", "back.jpg" };
+	std::vector<std::string> faces{ "Daylight Box_Right.bmp", "Daylight Box_Left.bmp", "Daylight Box_Top.bmp", "Daylight Box_Bottom.bmp", "Daylight Box_Front.bmp", "Daylight Box_Back.bmp" };
 	textures.push_back(new Texture(faces));
 	AddMaterial(texIDs,slots, 3);
 
