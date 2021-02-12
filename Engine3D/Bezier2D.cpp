@@ -67,7 +67,6 @@ std::vector<glm::vec4> Bezier2D::getSubSurf(int segmentS, int segmentT){
         (controlPoints.begin() + (segmentT * 16), controlPoints.begin() + (segmentT * 16) + 16);
     // segmentS should be 0 - circularSubdivision - 1
     rotateSurface(subSurf, 360.0f / circularSubdivision * segmentS);
-    if(segmentS) controlPoints.insert(controlPoints.end(), subSurf.begin(), subSurf.end());
     return subSurf;
 }
 
