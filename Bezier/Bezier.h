@@ -10,6 +10,7 @@ public:
 	Bezier();
 	void Init();
 	void Update(const glm::mat4 &MVP,const glm::mat4 &Model,const int  shaderIndx);
+	void setVP(int vpx, int vpy) { this->vpx = vpx; this->vpy = vpy; }
 	
 	void WhenRotate();
 	void WhenTranslate();
@@ -37,6 +38,7 @@ private:
 	unsigned int tmp;
 	int controlPoint;
 	int segment;
+	int vpx, vpy;
 	bool continuity, fillRshapes;
 	float x, y;
 	glm::vec2 r0, r1;

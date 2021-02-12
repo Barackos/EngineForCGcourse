@@ -29,6 +29,8 @@ void Renderer::Init(Scene* scene,  std::list<int>xViewport,  std::list<int>yView
 	// MoveCamera(0, zTranslate, 10);
 	glm::ivec4 viewport;
 	glGetIntegerv(GL_VIEWPORT, &viewport[0]);
+	vpx = viewport[2];
+	vpy = viewport[3];
 	drawInfo.push_back(new DrawInfo(0, 0, 0, 0,   inAction | toClear | blackClear | depthTest));
 	drawInfo.push_back(new DrawInfo(1, 1, 0, 0,   inAction | toClear | blackClear | depthTest));
 	buffers.push_back(new DrawBuffer());
@@ -120,8 +122,8 @@ bool Renderer::Picking(int x, int y)
 			Draw(i);
 			GLint viewport[4];
 			glGetIntegerv(GL_VIEWPORT, viewport); //reading viewport parameters
-			int xPos = x * (1680 / 840.0);
-			int yPos = y * (1550 / 840.0);
+			int xPos = x * (vpx / 840.0);
+			int yPos = y * (vpy / 840.0);
 			int bs = i == 0 ? 1 : 40, cp = 0, size = 4 * bs * bs;
 			unsigned char *data = new unsigned char[size];
 			glReadPixels(xPos, viewport[3] - yPos, bs, bs, GL_RGBA, GL_UNSIGNED_BYTE, data);

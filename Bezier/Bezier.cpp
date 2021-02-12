@@ -74,7 +74,7 @@ void Bezier::Init()
 void Bezier::BeforeDraw(int ref){
 	if(pickedShape == shapes.size() - 1){
 		if(pickingState == CREATING_RECTANGLE){
-			glm::vec2 wvct = glm::vec2(1680 / 840.0f, 1550 / 840.0f);
+			glm::vec2 wvct = glm::vec2(vpx / 840.0f, vpy / 840.0f);
 			glm::vec2 start = wvct * 840.0f * glm::vec2(glm::min(r0.x, r1.x), glm::min(r0.y, r1.y));
 			glm::vec2 end = wvct * 840.0f * glm::vec2(glm::max(r0.x, r1.x), glm::max(r0.y, r1.y));
 			glScissorIndexed(0, start.x, start.y, end.x - start.x, end.y - start.y);
@@ -90,7 +90,7 @@ void Bezier::BeforeDraw(int ref){
 
 void Bezier::AfterDraw(const glm::mat4& MVP){
 	if(pickedShape == shapes.size() - 1){
-		glScissorIndexed(0, 0, 0, 1680, 1550);
+		glScissorIndexed(0, 0, 0, vpx, vpy);
 		glBlendFunc(GL_ONE, GL_ZERO);
 	} else if(std::find(rShapes.begin(), rShapes.end(), pickedShape) != rShapes.end()){
 		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
@@ -236,7 +236,7 @@ void Bezier::checkRectangleEdge(int x, int y, int size, bool isX, int vpy){
 void Bezier::SelectShapesByRectangle() {
 	GLint viewport[4];
 	glGetIntegerv(GL_VIEWPORT, viewport);
-	glm::vec2 wvct = glm::vec2(1680 / 840.0f, 1550 / 840.0f);
+	glm::vec2 wvct = glm::vec2(vpx / 840.0f, vpy / 840.0f);
 	glm::vec2 start = wvct * 840.0f * glm::vec2(glm::min(r0.x, r1.x), glm::min(r0.y, r1.y));
 	glm::vec2 end = wvct * 840.0f * glm::vec2(glm::max(r0.x, r1.x), glm::max(r0.y, r1.y));
 	int sizeX = end.x - start.x, sizeY = end.y - start.y;

@@ -49,7 +49,8 @@ public:
 	void Draw(int infoIndx = 1);
 	void DrawAll();
 
-
+	int getVPX() { return vpx; }
+	int getVPY() { return vpy; }
 	void Resize(int width, int height);
 	void UpdatePosition(float xpos, float ypos);
 	void AddCamera(const glm::vec3& pos, float fov, float relationWH, float zNear, float zFar, int infoIndx = -1);
@@ -82,6 +83,7 @@ private:
 	std::vector<DrawBuffer*> buffers;
 	int materialIndx2D;
 	int toDrawIndx;
+	int vpx, vpy;
 	
 };
 
